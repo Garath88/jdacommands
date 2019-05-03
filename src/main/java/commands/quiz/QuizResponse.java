@@ -13,12 +13,13 @@ import utils.TriFunction;
 
 public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, EventWaiter> {
     private CommandClient client;
-    private final String retryMessage = String.format(
-        "- You can try again by typing **%smember**",
-        client.getPrefix());
+    private final String retryMessage;
 
     QuizResponse(CommandClient client) {
         this.client = client;
+        retryMessage = String.format(
+            "- You can try again by typing **%smember**",
+            client.getPrefix());
     }
 
     @Override
