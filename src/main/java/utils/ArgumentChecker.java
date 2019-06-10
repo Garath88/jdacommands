@@ -6,6 +6,7 @@ public final class ArgumentChecker {
     private static final String SPLIT_BY_SPACE = "\\s+";
     private static final String SPIT_BY_PIPE = "\\|+";
     private static final String INVALID_ARGS_MSG = "Wrong number of arguments, expected: %d";
+    private static final String INVALID_MAX_ARGS_MSG = "Wrong number of arguments, max is: %d";
 
     private ArgumentChecker() {
     }
@@ -21,6 +22,13 @@ public final class ArgumentChecker {
         if (getNumberOfArguments(arguments, SPLIT_BY_SPACE) < minimunRequiredArguments) {
             throw new IllegalArgumentException(String.format(INVALID_ARGS_MSG,
                 minimunRequiredArguments));
+        }
+    }
+
+    public static void checkArgsBySpaceIsAtMax(String arguments, int maxRequiredArguments) {
+        if (getNumberOfArguments(arguments, SPLIT_BY_SPACE) > maxRequiredArguments) {
+            throw new IllegalArgumentException(String.format(INVALID_MAX_ARGS_MSG,
+                maxRequiredArguments));
         }
     }
 

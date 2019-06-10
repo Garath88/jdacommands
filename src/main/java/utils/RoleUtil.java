@@ -16,6 +16,10 @@ public final class RoleUtil {
 
     public static void addRole(Guild guild, User user, String roleName) {
         Role role = findRole(guild, roleName);
+        addRole(guild, user, role);
+    }
+
+    private static void addRole(Guild guild, User user, Role role) {
         Member member = FinderUtil.findMembers(user.getId(), guild)
             .stream()
             .findFirst()
@@ -24,6 +28,12 @@ public final class RoleUtil {
             .queue(success -> {
             }, fail -> {
             });
+    }
+
+    public static Role findRole(Guild guild, String roleName) {
+        return guild.getRolesByName(roleName, false).stream()
+            .findFirst()
+            .orElseThrow(IllegalStateException::new);
     }
 
     public static void removeRole(Guild guild, User user, String roleName) {
@@ -36,12 +46,6 @@ public final class RoleUtil {
             .queue(success -> {
             }, fail -> {
             });
-    }
-
-    public static Role findRole(Guild guild, String roleName) {
-        return guild.getRolesByName(roleName, false).stream()
-            .findFirst()
-            .orElseThrow(IllegalStateException::new);
     }
 
     public static List<Role> getMemberRoles(CommandEvent event) {
