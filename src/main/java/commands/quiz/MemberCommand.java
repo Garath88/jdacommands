@@ -4,8 +4,6 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import commands.quiz.QuizQuestion;
-import commands.quiz.QuizResponse;
 
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Guild;
@@ -27,28 +25,27 @@ public class MemberCommand extends Command {
     @Override
     protected void execute(CommandEvent event) {
         try {
-            validateInput(event.getArgs());
             Guild guild = GuildUtil.getGuild(event.getJDA());
             Member member = FinderUtil.findMembers(event.getAuthor().getId(), guild)
                 .stream()
                 .findFirst()
                 .orElseThrow(IllegalStateException::new);
             if (!member.getRoles().isEmpty() && event.getChannelType().equals(ChannelType.PRIVATE)) {
-                event.reply(QuizQuestion.QUIZ_QUESTION);
                 QuizResponse quizResponse = new QuizResponse(event.getClient());
-                MessageUtil.waitForResponseInDM(event.getAuthor(), guild, waiter,
-                    new QuizResponse(event.getClient()), QuizQuestion.QUIZ_TIMEOUT_IN_MIN,
-                    quizResponse.getRetryMessage());
+                String response = event.getArgs();
+                if (response.isEmpty()) {
+                    event.reply(QuizQuestion.QUIZ_QUESTION);
+                    MessageUtil.waitForResponseInDM(event.getAuthor(), guild, waiter,
+                        new QuizResponse(event.getClient()), QuizQuestion.QUIZ_TIMEOUT_IN_MIN,
+                        quizResponse.getRetryMessage());
+                } else {
+                    quizResponse.checkResponse(response, guild, event.getAuthor(), waiter);
+
+                }
             }
         } catch (IllegalArgumentException e) {
             event.replyWarning(String.format("%s %s",
                 event.getMessage().getAuthor().getAsMention(), e.getMessage()));
-        }
-    }
-
-    private void validateInput(String args) {
-        if (!args.isEmpty()) {
-            throw new IllegalArgumentException("Please only type **+member** without any arguments!");
         }
     }
 }

@@ -31,9 +31,15 @@ public final class RoleUtil {
     }
 
     public static Role findRole(Guild guild, String roleName) {
-        return guild.getRolesByName(roleName, false).stream()
-            .findFirst()
-            .orElseThrow(IllegalStateException::new);
+        String temp = roleName;
+        if (roleName.startsWith("<")) {
+            temp = temp.replaceAll("[@&<#>]", "");
+            return guild.getRoleById(temp);
+        } else {
+            return guild.getRolesByName(temp, false).stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Role \"%s\" doesn't exist!", roleName)));
+        }
     }
 
     public static void removeRole(Guild guild, User user, String roleName) {

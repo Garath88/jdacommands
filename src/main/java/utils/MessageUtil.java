@@ -95,7 +95,7 @@ public final class MessageUtil {
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(user) && e.getChannel().getType().equals(ChannelType.PRIVATE),
             dmResponse, timeoutMinutes, TimeUnit.MINUTES, () -> MessageUtil.sendMessageToUser(user,
-                String.format("- Sorry you were too slow %s :frowning: \n"
+                String.format("- Sorry you were too slow to respond %s :frowning: \n"
                     + retryMsg, user.getAsMention())), user);
     }
 
@@ -114,7 +114,7 @@ public final class MessageUtil {
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(user) && e.getChannel().getId().equals(event.getChannel().getId()),
             channelResponse, timeoutMinutes, TimeUnit.MINUTES, () -> event.reply(
-                String.format("- Sorry you were too slow %s :frowning: \n"
+                String.format("- Sorry you were too slow to respond %s :frowning: \n"
                     + retryMsg, user.getAsMention())), user);
     }
 }

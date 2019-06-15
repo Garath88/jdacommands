@@ -47,9 +47,6 @@ public class WaifuCommand extends Command {
         } catch (IllegalArgumentException | InsufficientPermissionException | HierarchyException e) {
             event.replyWarning(String.format("%s %s",
                 e.getMessage(), event.getMessage().getAuthor().getAsMention()));
-        } catch (IllegalStateException e) {
-            event.replyWarning(String.format("Could not find waifu role: \"%s\"",
-                event.getArgs()));
         }
     }
 
