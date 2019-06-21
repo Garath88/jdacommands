@@ -14,7 +14,7 @@ public class RemoveRoleCommand extends Command {
 
     public RemoveRoleCommand() {
         this.name = "remove_role";
-        this.help = "Removes a given role for all members.";
+        this.help = "removes a given role for all members.";
         this.arguments = "<role name>";
         this.guildOnly = true;
         this.ownerCommand = true;
@@ -32,7 +32,7 @@ public class RemoveRoleCommand extends Command {
             Role roleToBeRemoved = RoleUtil.findRole(guild, arguments);
             guild.getMembersWithRoles(roleToBeRemoved)
                 .forEach(member -> RoleUtil.removeRole(guild, member.getUser(), roleToBeRemoved.getName()));
-            event.replySuccess(String.format("Successfully removed %s for all members",
+            event.reply(String.format("Successfully removed %s for all members",
                 roleToBeRemoved.getAsMention()));
         } catch (IllegalArgumentException | HierarchyException e) {
             event.replyWarning(e.getMessage());

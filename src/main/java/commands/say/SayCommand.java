@@ -23,9 +23,12 @@ public final class SayCommand extends Command {
     private static final int MESSAGE_INDEX = 0;
     private static final int THREAD_INDEX = 1;
     private static final int MESSAGE_WITH_CHANNEL_ID = 2;
+    private final String botName;
 
     public SayCommand(String name) {
+        botName = name;
         this.name = String.format("%s_say", name.toLowerCase());
+        this.aliases = new String[] { name.substring(0, 1) + "s" };
         this.help = String.format("say something with %s and optionally create a channel"
             + " or with no arguments to list current talking channel.", name);
         this.arguments = "[<text>] followed by separator '|' [<topic>]";
@@ -57,7 +60,7 @@ public final class SayCommand extends Command {
 
     private void say(CommandEvent event, String message) {
         String channelId = SayStorage.getChannel().orElseThrow(() -> new IllegalArgumentException(String.format("You haven't added a text channel to talk in! \n "
-            + "Please use the **%s%s_set_chan** command", event.getClient().getPrefix(), this.name)));
+            + "Please use the **%s%s_set_chan** command", event.getClient().getPrefix(), botName.toLowerCase())));
         TextChannel textChannel = TextChannelUtil.getChannel(channelId, event.getEvent());
         List<Message.Attachment> attachments = event.getMessage().getAttachments();
         if (StringUtils.isNotEmpty(message) || !attachments.isEmpty()) {

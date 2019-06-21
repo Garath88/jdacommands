@@ -1,0 +1,95 @@
+package commands.emoji;
+
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Preconditions;
+import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.CommandEvent;
+
+import commands.Permissions;
+import commands.user.UserInfo;
+import commands.user.UserInfoStorage;
+import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageReaction;
+import net.dv8tion.jda.core.entities.User;
+import utils.ArgumentChecker;
+import utils.EmojiUtil;
+import utils.UserUtil;
+
+public final class BanEmojiCommand extends Command {
+
+    public BanEmojiCommand() {
+        this.name = "ban_emoji";
+        this.help = "automatically delete reactions and messages with the emoji for a person or all members.\nList deleted emojis with no arguments";
+        this.arguments = "<emoji> <user id> or <all>";
+        this.guildOnly = true;
+        this.requiredRoles = Permissions.MODERATOR.getValues();
+        this.botPermissions = new Permission[] {
+            Permission.MANAGE_CHANNEL
+        };
+    }
+
+    @Override
+    protected void execute(CommandEvent event) {
+        try {
+            String args = event.getArgs();
+            if (args.isEmpty()) {
+                event.reply(UserInfoStorage.listBannedEmojisForAllUsers(event.getJDA()));
+            } else {
+                ArgumentChecker.checkArgsBySpace(args, 2);
+                String[] items = args.split("\\s");
+                validateEmoji(items[0]);
+                String user = validateUser(items[1], event);
+                UserInfoStorage.addEmojiAndUser(items[0], items[1]);
+                event.reply(String.format("Successfully added emoji %s to blacklist for user %s",
+                    items[0], user));
+            }
+        } catch (IllegalArgumentException e) {
+            event.replyWarning(e.getMessage());
+        }
+    }
+
+    private void validateEmoji(String emoji) {
+        if (!EmojiUtil.isEmoji(emoji)) {
+            throw new IllegalArgumentException(String.format("Invalid emoji syntax %s", emoji));
+        }
+    }
+
+    private String validateUser(String user, CommandEvent event) {
+        if ("all".equalsIgnoreCase(user.toLowerCase())) {
+            return "all";
+        } else {
+            Preconditions.checkArgument(StringUtils.isNumeric(user),
+                String.format("Invalid user id \"%s\", id must be numeric", user));
+            return UserUtil.findUser(user, event).getAsMention();
+        }
+    }
+
+    public static void deleteMessageWithBlacklistedEmojis(String userId, Message message) {
+        if (UserUtil.isNotModAdminOrBot(userId, message.getJDA())) {
+            Optional<UserInfo> userInfo = UserInfoStorage.findUser(userId);
+            userInfo.ifPresent(info -> EmojiUtil.removeEmojiFromMessage(message, info.getBannedEmojis()));
+            Optional<UserInfo> allUsers = UserInfoStorage.findUser("all");
+            allUsers.ifPresent(info -> EmojiUtil.removeEmojiFromMessage(message, info.getBannedEmojis()));
+        }
+    }
+
+    public static void deleteReactionWithBlacklistedEmojis(User author, MessageReaction messageReaction) {
+        String userId = author.getId();
+        if (UserUtil.isNotModAdminOrBot(userId, messageReaction.getJDA())) {
+            removeBlacklistedEmojiForId(author, messageReaction);
+        }
+    }
+
+    private static void removeBlacklistedEmojiForId(User author, MessageReaction messageReaction) {
+        Optional<UserInfo> userInfo = UserInfoStorage.findUser(author.getId());
+        userInfo.ifPresent(info ->
+            EmojiUtil.removeEmojiFromReaction(author, messageReaction, info.getBannedEmojis()));
+        userInfo = UserInfoStorage.findUser("all");
+        userInfo.ifPresent(info ->
+            EmojiUtil.removeEmojiFromReaction(author, messageReaction, info.getBannedEmojis()));
+    }
+}

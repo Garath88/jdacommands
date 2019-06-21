@@ -10,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import database.ThreadDbTable;
+import net.dv8tion.jda.core.events.Event;
+import net.dv8tion.jda.core.events.message.MessageDeleteEvent;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import utils.CategoryUtil;
 import utils.GuildUtil;
 
@@ -142,6 +145,18 @@ public final class SortThreads {
                     .reversed())
                 .queue(success ->
                     InactiveThreadChecker.startOrCancelInactivityTaskIfNotTopX(jda));
+        }
+    }
+
+    public static void handleSortingOfThreads(Event event, TextChannel textChan) {
+        if (CategoryUtil.getThreadCategory(event.getJDA()).getTextChannels().contains(textChan)) {
+            if (event instanceof MessageReceivedEvent) {
+                SortThreads.countUniquePostsAndSort(textChan, 1);
+            } else if (event instanceof MessageDeleteEvent) {
+                MessageDeleteEvent deleteEvent = ((MessageDeleteEvent)event);
+                ThreadDbTable.updateLatestMsgInDbIfDeleted(deleteEvent.getMessageIdLong(),
+                    deleteEvent.getTextChannel());
+            }
         }
     }
 }
