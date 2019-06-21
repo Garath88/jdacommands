@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-final class MediaPatterns {
+public final class MediaPatterns {
     private static final Pattern URL_TWITTER_PATTERN =
         Pattern.compile("http(s?)://pbs(-[0-9]+)?.twimg.com/media/[^./]+.(jpg|png)((:[a-z]+)?)$");
     private static final Pattern URL_TWITTER_STATUS_PATTERN =
@@ -31,6 +31,8 @@ final class MediaPatterns {
         Pattern.compile("http(s?)://.+\\.webm$");
     private static final Pattern URL_MP4_PATTERN =
         Pattern.compile("http(s?)://.+\\.mp4$");
+    public static final Pattern URL_PATTERN =
+        Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\\.[a-z]{2,6}\\b[-a-zA-Z0-9@:%_+.~#?&/=]*");
 
     private static final List<Pattern> PATTERNS = Arrays.asList(
         URL_TWITTER_PATTERN,

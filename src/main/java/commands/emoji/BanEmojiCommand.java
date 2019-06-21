@@ -2,9 +2,6 @@ package commands.emoji;
 
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Preconditions;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
@@ -23,7 +20,7 @@ public final class BanEmojiCommand extends Command {
 
     public BanEmojiCommand() {
         this.name = "ban_emoji";
-        this.help = "automatically delete reactions and messages with the emoji for a person or all members.\nList deleted emojis with no arguments";
+        this.help = "automatically delete reactions and messages with the emoji for a user or all members.\nList deleted emojis with no arguments";
         this.arguments = "<emoji> <user id> or <all>";
         this.guildOnly = true;
         this.requiredRoles = Permissions.MODERATOR.getValues();
@@ -42,7 +39,7 @@ public final class BanEmojiCommand extends Command {
                 ArgumentChecker.checkArgsBySpace(args, 2);
                 String[] items = args.split("\\s");
                 validateEmoji(items[0]);
-                String user = validateUser(items[1], event);
+                String user = UserUtil.validateAndGetUser(items[1], event);
                 UserInfoStorage.addEmojiAndUser(items[0], items[1]);
                 event.reply(String.format("Successfully added emoji %s to blacklist for user %s",
                     items[0], user));
@@ -55,16 +52,6 @@ public final class BanEmojiCommand extends Command {
     private void validateEmoji(String emoji) {
         if (!EmojiUtil.isEmoji(emoji)) {
             throw new IllegalArgumentException(String.format("Invalid emoji syntax %s", emoji));
-        }
-    }
-
-    private String validateUser(String user, CommandEvent event) {
-        if ("all".equalsIgnoreCase(user.toLowerCase())) {
-            return "all";
-        } else {
-            Preconditions.checkArgument(StringUtils.isNumeric(user),
-                String.format("Invalid user id \"%s\", id must be numeric", user));
-            return UserUtil.findUser(user, event).getAsMention();
         }
     }
 

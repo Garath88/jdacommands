@@ -1,5 +1,8 @@
 package utils;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Preconditions;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 
@@ -38,5 +41,15 @@ public final class UserUtil {
         }
         return GuildUtil.getGuild(jda).getMember(user).getRoles().stream()
             .noneMatch(role -> Permissions.MODERATOR.getValues().contains(role.getName()));
+    }
+
+    public static String validateAndGetUser(String user, CommandEvent event) {
+        if ("all".equalsIgnoreCase(user.toLowerCase())) {
+            return "all";
+        } else {
+            Preconditions.checkArgument(StringUtils.isNumeric(user),
+                String.format("Invalid user id \"%s\", id must be numeric", user));
+            return UserUtil.findUser(user, event).getAsMention();
+        }
     }
 }

@@ -35,22 +35,37 @@ public final class UserInfoStorage {
     }
 
     public static String listBannedEmojisForAllUsers(JDA jda) {
+        String ret;
         StringBuilder sb = new StringBuilder();
-        if (!users.isEmpty()) {
+        if (users.isEmpty()) {
+            sb.append("No banned emojis!");
+            ret = sb.toString();
+        } else {
             sb.append("Listing banned emojis:\n");
+            users.forEach(user -> {
+                String bannedEmojis = String.join(" ", user.getBannedEmojis());
+                bannedEmojis = bannedEmojis.replaceAll("[<>0-9]", "");
+                String userId = user.getUserId();
+                if (userId.equals("all")) {
+                    sb.append(String.format("All: %s %n",
+                        bannedEmojis));
+                } else {
+                    sb.append(String.format("<@%s> %s %n",
+                        userId, bannedEmojis));
+                }
+            });
+            ret = EmojiUtil.addEmojisToMessage(jda, sb.toString());
         }
-        users.forEach(user -> {
-            String bannedEmojis = String.join(" ", user.getBannedEmojis());
-            bannedEmojis = bannedEmojis.replaceAll("[<>0-9]", "");
-            String userId = user.getUserId();
-            if (userId.equals("all")) {
-                sb.append(String.format("All: %s %n",
-                    bannedEmojis));
-            } else {
-                sb.append(String.format("<@%s> %s %n",
-                    userId, bannedEmojis));
+        return ret;
+    }
+
+    public static void removeEmojiForUser(String emoji, String userId) {
+        Optional<UserInfo> user = findUser(userId);
+        user.ifPresent(info -> {
+            info.removeEmoji(emoji);
+            if (info.getBannedEmojis().isEmpty()) {
+                users.remove(info);
             }
         });
-        return EmojiUtil.addEmojisToMessage(jda, sb.toString());
     }
 }

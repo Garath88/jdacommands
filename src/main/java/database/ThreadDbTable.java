@@ -15,7 +15,6 @@ import net.dv8tion.jda.core.entities.ISnowflake;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 
 /*TODO: TEST JOOQ INSTEAD OF THIS*/
 
@@ -84,8 +83,7 @@ public final class ThreadDbTable {
                     channelIds.add(result.getLong("id"));
                 }
                 result.close();
-                return new ThreadDbInfo(outprint.stream()
-                    .collect(Collectors.joining("\n")), channelIds);
+                return new ThreadDbInfo(String.join("\n", outprint), channelIds);
             } catch (SQLException e) {
                 LOGGER.error(QUERY_RESULT_ERROR, e);
             }
@@ -114,13 +112,10 @@ public final class ThreadDbTable {
 
     private static void checkStoredLatestMessage(TextChannel thread) {
         long messageId = getLatestMsgId(thread.getIdLong());
-        try {
-            if (messageId != 0) {
-                thread.getMessageById(messageId)
-                    .complete();
-            }
-        } catch (ErrorResponseException e) {
-            updateLatestMsgInDbIfDeleted(messageId, thread);
+        if (messageId != 0) {
+            thread.getMessageById(messageId)
+                .queue(success -> {
+                }, fail -> updateLatestMsgInDbIfDeleted(messageId, thread));
         }
     }
 

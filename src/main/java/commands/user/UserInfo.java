@@ -16,10 +16,14 @@ public final class UserInfo {
     }
 
     String getUserId() {
-        return this.id;
+        return id;
     }
 
     public List<String> getBannedEmojis() {
-        return this.bannedEmojis;
+        return bannedEmojis;
+    }
+
+    void removeEmoji(String emoji) {
+        bannedEmojis.remove(emoji);
     }
 }

@@ -60,8 +60,7 @@ public class WaifuCommand extends Command {
             Guild guild = event.getGuild();
             Role guildRole = RoleUtil.findRole(guild, roles.getRole(waifu));
             guild.getController().addSingleRoleToMember(event.getMember(), guildRole)
-                .complete();
-            changeUserNicknameBasedOnRole(guildRole, event, roles);
+                .queue(success -> changeUserNicknameBasedOnRole(guildRole, event, roles));
         }
     }
 
