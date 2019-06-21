@@ -25,7 +25,8 @@ public final class BanEmojiCommand extends Command {
         this.guildOnly = true;
         this.requiredRoles = Permissions.MODERATOR.getValues();
         this.botPermissions = new Permission[] {
-            Permission.MANAGE_CHANNEL
+            Permission.MANAGE_CHANNEL,
+            Permission.MESSAGE_MANAGE
         };
     }
 
