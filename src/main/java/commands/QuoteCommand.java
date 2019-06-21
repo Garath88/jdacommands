@@ -24,7 +24,7 @@ public final class QuoteCommand extends Command {
     public QuoteCommand() {
         this.name = "quote";
         this.help = "quote a message specified by a message id";
-        this.arguments = "<messageid>";
+        this.arguments = "<message id>";
         this.botPermissions = new Permission[] {
             Permission.MESSAGE_READ
         };
