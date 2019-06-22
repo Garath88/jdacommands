@@ -34,8 +34,7 @@ public class DMCommand extends Command {
             User user = UserUtil.findUser(items[1], event);
             List<Attachment> attachments = event.getMessage().getAttachments();
             user.openPrivateChannel().queue(
-                PrivateChannelWrapper.userIsInGuild(pc ->
-                {
+                PrivateChannelWrapper.userIsInGuild(pc -> {
                     MessageUtil.sendAttachmentsToChannel(attachments, pc);
                     MessageUtil.sendMessageToChannel(items[0], pc, true);
                 }),

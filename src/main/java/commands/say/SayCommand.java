@@ -14,8 +14,6 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
-import utils.EmojiUtil;
-import utils.MentionUtil;
 import utils.MessageUtil;
 import utils.TextChannelUtil;
 
@@ -59,17 +57,16 @@ public final class SayCommand extends Command {
     }
 
     private void say(CommandEvent event, String message) {
-        String channelId = SayStorage.getChannel().orElseThrow(() -> new IllegalArgumentException(String.format("You haven't added a text channel to talk in! \n "
+        String channelId = SayStorage.getChannelId().orElseThrow(() -> new IllegalArgumentException(String.format("You haven't added a text channel to talk in! \n "
             + "Please use the **%s%s_set_chan** command", event.getClient().getPrefix(), botName.toLowerCase())));
         TextChannel textChannel = TextChannelUtil.getChannel(channelId, event.getEvent());
         List<Message.Attachment> attachments = event.getMessage().getAttachments();
         if (StringUtils.isNotEmpty(message) || !attachments.isEmpty()) {
             if (event.isFromType(ChannelType.PRIVATE)) {
-                message = MentionUtil.addMentionsToMessage(event, message);
-                message = EmojiUtil.addEmojisToMessage(event.getJDA(), message);
+                message = MessageUtil.addMentionsAndEmojis(message, event.getJDA());
             }
             MessageUtil.sendAttachmentsToChannel(attachments, textChannel);
-            MessageUtil.sendMessageToChannel(message, textChannel, SayStorage.getUseDash());
+            MessageUtil.sendSayCommandMessageToChannel(message, textChannel, SayStorage.getUseDash());
         } else {
             event.reply(String.format("Currently talking in channel: **%s**",
                 textChannel.getName()));

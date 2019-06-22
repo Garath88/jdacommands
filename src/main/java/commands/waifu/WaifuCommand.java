@@ -1,10 +1,12 @@
 package commands.waifu;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,27 +15,72 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import commands.waifu.promt.WaifuQuestion;
+import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.HierarchyException;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import utils.ArgumentChecker;
 import utils.GuildUtil;
+import utils.MessageCycler;
 import utils.RoleUtil;
 
 public class WaifuCommand extends Command {
     private static final int MAX_CHAR_LENGTH = 32;
     private Roles roles;
     private final EventWaiter waiter;
+    private static final MessageCycler selfMessageCycler =
+        new MessageCycler(Arrays.asList(
+            "- Yippeee!!!!!",
+            ":heart:",
+            "- YAY!",
+            "- MEEE? Awww :blush:",
+            "- Woohoo!",
+            "- 11 points to Sakura!",
+            "- Thank you! :heart:",
+            ":kissing_heart:",
+            "- Thank you for supporting me! <3",
+            "- Thankies~"
+        ), 0, true);
+    private static final MessageCycler otherWaifusMessageCycler =
+        new MessageCycler(Arrays.asList(
+            "- Excellent choice!",
+            "- She is soo cute!",
+            "<3",
+            "- I wanna be just like her!",
+            "- She is so cool!",
+            "- Good choice!",
+            "- Isn't she pretty?",
+            "- Here ya go!",
+            "- You are all set!"
+        ), 0, true);
+    private static final MessageCycler zaidanMessageCycler =
+        new MessageCycler(Arrays.asList(
+            "- She is amazing! Wait..",
+            "- It's pronounced Zai-Den not Zai-Dan *duh*",
+            "- Are you sure you know what a Waifu is?",
+            "- Oke..",
+            "- Now you are just messing with me",
+            "- Fine, I give up..",
+            "- All aboard the Zaidan train!",
+            "- Make sure to give him that like and subscribe!",
+            "- GO GO GO Zaidan!"
+        ), 0, false);
 
-    public WaifuCommand(Roles roles, EventWaiter waiter) {
+    public WaifuCommand(EventWaiter waiter) {
         this.name = "waifu";
         this.help = "represent your favorite waifu by showing off your role and joining their team! ";
         this.arguments = "<name> or <none>";
         this.guildOnly = false;
-        this.roles = roles;
+        this.roles = new WaifuRoles();
         this.waiter = waiter;
+        this.botPermissions = new Permission[] {
+            Permission.NICKNAME_MANAGE
+        };
     }
 
     @Override
@@ -42,7 +89,7 @@ public class WaifuCommand extends Command {
             if (event.getArgs().isEmpty()) {
                 WaifuQuestion.perform(event, waiter, roles);
             } else {
-                addWaifuRole(event, event.getArgs(), roles);
+                checkArgument(event, event.getArgs(), roles);
             }
         } catch (IllegalArgumentException | InsufficientPermissionException | HierarchyException e) {
             event.replyWarning(String.format("%s %s",
@@ -50,42 +97,54 @@ public class WaifuCommand extends Command {
         }
     }
 
-    public static void addWaifuRole(CommandEvent event, String waifu, Roles roles) {
+    public static void checkArgument(CommandEvent event, String waifu, Roles roles) {
         if (waifu.equals("none")) {
-            removeWaifuRoles(event, roles);
+            removeWaifuRoles(roles, event);
         } else {
-            addDefaultWaifuSupportRole(event.getGuild(), event.getMember());
-            waifu = validateAndFindWaifuRole(waifu, roles);
-            removePreviousWaifuRole(event, roles);
-            Guild guild = event.getGuild();
-            Role guildRole = RoleUtil.findRole(guild, roles.getRole(waifu));
-            guild.getController().addSingleRoleToMember(event.getMember(), guildRole)
-                .queue(success -> changeUserNicknameBasedOnRole(guildRole, event, roles));
+            addWaifuRole(event, waifu, roles);
         }
     }
 
-    private static void removeWaifuRoles(CommandEvent event, Roles roles) {
-        List<String> waifuRoles = roles.getRoles();
-        waifuRoles.add("Waifu Supporter");
-        Collection<Role> rolesToBeRemoved = RoleUtil.getMemberRoles(event)
-            .stream()
-            .filter(role -> waifuRoles.contains(role.getName()))
-            .collect(Collectors.toList());
-        Guild guild = event.getGuild();
-        guild.getController().removeRolesFromMember(event.getMember(), rolesToBeRemoved)
-            .queue(success -> {
-                String roleNames = rolesToBeRemoved.stream()
-                    .map(Role::getAsMention)
-                    .collect(Collectors.joining(", "));
-                String currentNickname = event.getMember().getNickname();
-                if (StringUtils.isEmpty(currentNickname)) {
-                    currentNickname = event.getAuthor().getName();
-                }
-                String newNickname = getNicknameWithoutTeamname(currentNickname, roles);
-                guild.getController().setNickname(event.getMember(), newNickname)
-                    .queue(success2 -> event.reply(String.format("Successfully removed the roles: %s for %s",
-                        roleNames, event.getAuthor().getAsMention())));
-            });
+    private static void addWaifuRole(CommandEvent event, String input, Roles roles) {
+        Guild guild = GuildUtil.getGuild(event.getJDA());
+        Member member = guild.getMember(event.getAuthor());
+        addDefaultWaifuSupportRole(guild, member);
+        String waifu = validateAndFindWaifuRole(input, roles, guild.getJDA());
+        removePreviousWaifuRole(guild, member, roles);
+        Role guildRole = RoleUtil.findRole(guild, roles.getRole(waifu));
+
+        doSakuraResponses(waifu, event);
+
+        guild.getController().addSingleRoleToMember(member, guildRole)
+            .queue(success -> changeUserNicknameBasedOnRole(guildRole, member, roles, event));
+    }
+
+    private static void removeWaifuRoles(Roles roles, CommandEvent event) {
+        if (event.getSelfUser().getName().equals("Oboro")) {
+            addWaifuRole(event, "Oboro", roles);
+        } else {
+            Guild guild = GuildUtil.getGuild(event.getJDA());
+            List<String> waifuRoles = roles.getRoles();
+            waifuRoles.add("Waifu Supporter");
+            Collection<Role> rolesToBeRemoved = RoleUtil.getMemberRoles(event)
+                .stream()
+                .filter(role -> waifuRoles.contains(role.getName()))
+                .collect(Collectors.toList());
+            Member member = guild.getMember(event.getAuthor());
+            guild.getController().removeRolesFromMember(member, rolesToBeRemoved)
+                .queue(success -> {
+                    String currentNickname = member.getNickname();
+                    User user = member.getUser();
+                    if (StringUtils.isEmpty(currentNickname)) {
+                        currentNickname = user.getName();
+                    }
+                    String newNickname = getNicknameWithoutTeamname(currentNickname, roles);
+                    guild.getController().setNickname(member, newNickname)
+                        .queue(success2 -> event.reply(String.format("Successfully removed the roles: %s for %s",
+                            getRoleNames(rolesToBeRemoved, event),
+                            user.getAsMention())));
+                });
+        }
     }
 
     private static void addDefaultWaifuSupportRole(Guild guild, Member member) {
@@ -94,14 +153,25 @@ public class WaifuCommand extends Command {
             .queue();
     }
 
-    private static String validateAndFindWaifuRole(String waifu, Roles roles) {
+    private static String validateAndFindWaifuRole(String waifu, Roles roles, JDA jda) {
         ArgumentChecker.checkArgsBySpaceIsAtMax(waifu, 2);
-        Optional<String> waifuRole = findBestMatchingRole(waifu, roles);
-        if (!waifuRole.isPresent()) {
-            throw new IllegalArgumentException(String.format("- Umm.. Who is \"%s\" again?",
-                waifu));
+
+        if (jda.getSelfUser().getName().equals("Sakura")) {
+            if (waifu.toLowerCase().contains("oboro")) {
+                throw new IllegalArgumentException(
+                    "Oboro?! Are you really sure?\n"
+                        + "Well then I think you should ask her for that..");
+            } else {
+                Optional<String> waifuRole = findBestMatchingRole(waifu, roles);
+                if (!waifuRole.isPresent()) {
+                    throw new IllegalArgumentException(String.format("Umm.. Who is \"%s\" again?",
+                        waifu));
+                }
+                return waifuRole.get();
+            }
+        } else {
+            return "Oboro";
         }
-        return waifuRole.get();
     }
 
     private static Optional<String> findBestMatchingRole(String waifu, Roles roles) {
@@ -113,11 +183,11 @@ public class WaifuCommand extends Command {
             .findFirst();
     }
 
-    private static void removePreviousWaifuRole(CommandEvent event, Roles roles) {
-        List<String> userRoles = event.getMember().getRoles().stream().map(Role::getName)
+    private static void removePreviousWaifuRole(Guild guild, Member member, Roles roles) {
+        List<String> userRoles = member.getRoles().stream().map(Role::getName)
             .collect(Collectors.toList());
         for (String waifuRole : getPreviousWaifuRole(userRoles, roles)) {
-            RoleUtil.removeRole(event.getGuild(), event.getAuthor(), waifuRole);
+            RoleUtil.removeRole(guild, member.getUser(), waifuRole);
         }
     }
 
@@ -127,11 +197,11 @@ public class WaifuCommand extends Command {
             .collect(Collectors.toList());
     }
 
-    private static void changeUserNicknameBasedOnRole(Role guildRole, CommandEvent event, Roles roles) {
+    private static void changeUserNicknameBasedOnRole(Role guildRole, Member member, Roles roles, CommandEvent event) {
         String role = guildRole.getName();
-        String currentNickname = event.getMember().getNickname();
+        String currentNickname = member.getNickname();
         if (StringUtils.isEmpty(currentNickname)) {
-            currentNickname = event.getAuthor().getName();
+            currentNickname = member.getUser().getName();
         }
         currentNickname = getNicknameWithoutTeamname(currentNickname, roles);
         String newNickname = String.format("%s \"%s\"", currentNickname, roles.getRoleRepresentation(role));
@@ -143,9 +213,10 @@ public class WaifuCommand extends Command {
         }
 
         if (!newNickname.equals(currentNickname)) {
-            GuildUtil.getGuild(event.getJDA()).getController().setNickname(event.getMember(), newNickname)
+            String roleName = event.isFromType(ChannelType.PRIVATE) ? guildRole.getName() : guildRole.getAsMention();
+            GuildUtil.getGuild(event.getJDA()).getController().setNickname(member, newNickname)
                 .queue(success -> event.reply(String.format("%s You now have the role %s!",
-                    event.getAuthor().getAsMention(), guildRole.getAsMention())));
+                    event.getAuthor().getAsMention(), roleName)));
 
         }
     }
@@ -159,5 +230,29 @@ public class WaifuCommand extends Command {
         }
         currentNickname = currentNickname.trim();
         return currentNickname;
+    }
+
+    private static String getRoleNames(Collection<Role> rolesToBeRemoved, CommandEvent event) {
+        Stream<String> roleNames;
+        if (event.isFromType(ChannelType.PRIVATE)) {
+            roleNames = rolesToBeRemoved.stream()
+                .map(Role::getName);
+        } else {
+            roleNames = rolesToBeRemoved.stream()
+                .map(Role::getAsMention);
+        }
+        return roleNames.collect(Collectors.joining(", "));
+    }
+
+    private static void doSakuraResponses(String waifu, CommandEvent event) {
+        if (event.getSelfUser().getName().equals("Sakura")) {
+            if (waifu.equals("sakura")) {
+                event.reply(selfMessageCycler.getNextMessageAfterTimer());
+            } else if (waifu.equals("zaidan")) {
+                event.reply(zaidanMessageCycler.getNextMessageAfterTimer());
+            } else {
+                event.reply(otherWaifusMessageCycler.getNextMessageAfterTimer());
+            }
+        }
     }
 }

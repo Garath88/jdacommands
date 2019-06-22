@@ -15,11 +15,11 @@ import utils.PrivateChannelWrapper;
 import utils.RoleUtil;
 
 public final class QuizQuestion {
-    public static final String QUIZ_QUESTION =
+    static final String QUIZ_QUESTION =
         "- **Who do I \"fight to the death\" in order to free myself and my sister in Taimanin Asagi 1?** *(As seen in OVA 1 episodes 1-4 or VN 1)*";
     public static final String QUIZ_ROLE = "Quiz";
     public static final String RULES_ROLE = "Rules";
-    public static final int QUIZ_TIMEOUT_IN_MIN = 10;
+    static final int QUIZ_TIMEOUT_IN_MIN = 10;
 
     private QuizQuestion() {
     }

@@ -1,6 +1,5 @@
 package utils;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,9 +7,6 @@ import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.ISnowflake;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageReaction;
-import net.dv8tion.jda.core.entities.User;
 
 public final class EmojiUtil {
     private static final Pattern EMOJI_PATTERN = Pattern.compile(":([A-z]*?):");
@@ -20,7 +16,7 @@ public final class EmojiUtil {
     private EmojiUtil() {
     }
 
-    public static String addEmojisToMessage(JDA jda, String message) {
+    public static String addEmojisToMessage(String message, JDA jda) {
         Matcher m = EMOJI_PATTERN.matcher(message);
         StringBuffer sb = new StringBuffer(message.length());
         while (m.find()) {
@@ -45,23 +41,9 @@ public final class EmojiUtil {
         return "";
     }
 
-    public static boolean isEmoji(String emoji) {
-        return FinderUtil.EMOTE_MENTION.matcher(emoji).matches()
+    public static boolean isNotEmoji(String emoji) {
+        return !(FinderUtil.EMOTE_MENTION.matcher(emoji).matches()
             || EMOJI_PATTERN.matcher(emoji).matches()
-            || EMOJI_UNICODE_PATTERN.matcher(emoji).matches();
-    }
-
-    public static void removeEmojiFromMessage(Message message, List<String> bannedEmojis) {
-        if (bannedEmojis.stream()
-            .anyMatch(emoji -> message.getContentRaw().contains(emoji))) {
-            message.delete().queue();
-        }
-    }
-
-    public static void removeEmojiFromReaction(User author, MessageReaction messageReaction, List<String> bannedEmojis) {
-        if (bannedEmojis.stream()
-            .anyMatch(emoji -> emoji.contains(messageReaction.getReactionEmote().getName()))) {
-            messageReaction.removeReaction(author).queue();
-        }
+            || EMOJI_UNICODE_PATTERN.matcher(emoji).matches());
     }
 }

@@ -12,9 +12,9 @@ import utils.ArgumentChecker;
 import utils.MessageUtil;
 import utils.UserUtil;
 
-public class ReadDMHistory extends Command {
+public class ReadDMHistoryCommand extends Command {
 
-    public ReadDMHistory(String name) {
+    public ReadDMHistoryCommand(String name) {
         this.name = String.format("%s_dm_history", name.toLowerCase());
         this.help = String.format("reads %s DM history with a user.", name);
         this.arguments = "<user id> <number of messages>";

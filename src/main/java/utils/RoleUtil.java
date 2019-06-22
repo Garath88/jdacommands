@@ -31,6 +31,9 @@ public final class RoleUtil {
     }
 
     public static Role findRole(Guild guild, String roleName) {
+        if (guild == null) {
+            throw new IllegalArgumentException("Guild not found!");
+        }
         String temp = roleName;
         if (roleName.startsWith("<")) {
             temp = temp.replaceAll("[@&<#>]", "");

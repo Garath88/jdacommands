@@ -33,6 +33,8 @@ public final class MediaPatterns {
         Pattern.compile("http(s?)://.+\\.mp4$");
     public static final Pattern URL_PATTERN =
         Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\\.[a-z]{2,6}\\b[-a-zA-Z0-9@:%_+.~#?&/=]*");
+    public static final Pattern IMAGE_PATTERN =
+        Pattern.compile("[^\\s]+\\.(?i)(jpg|png|gif|bmp)$");
 
     private static final List<Pattern> PATTERNS = Arrays.asList(
         URL_TWITTER_PATTERN,

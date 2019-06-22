@@ -1,5 +1,7 @@
 package commands.emoji;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import com.jagrosh.jdautilities.command.Command;
@@ -14,9 +16,17 @@ import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.entities.User;
 import utils.ArgumentChecker;
 import utils.EmojiUtil;
+import utils.MessageCycler;
 import utils.UserUtil;
 
 public final class BanEmojiCommand extends Command {
+    private static final int DELETE_TIMEOUT = 180_000;
+    private static final MessageCycler messageCycler = new MessageCycler(Arrays.asList(
+        "- You miscreants are getting on my nerves...time to take away your loud toys!",
+        "- Nonono, be a good worm and behave.",
+        "- How about... NO!",
+        "- Another disgusting display wiped away."
+    ), 10000, false);
 
     public BanEmojiCommand() {
         this.name = "ban_emoji";
@@ -26,7 +36,8 @@ public final class BanEmojiCommand extends Command {
         this.requiredRoles = Permissions.MODERATOR.getValues();
         this.botPermissions = new Permission[] {
             Permission.MANAGE_CHANNEL,
-            Permission.MESSAGE_MANAGE
+            Permission.MESSAGE_MANAGE,
+            Permission.MESSAGE_WRITE,
         };
     }
 
@@ -51,7 +62,7 @@ public final class BanEmojiCommand extends Command {
     }
 
     private void validateEmoji(String emoji) {
-        if (!EmojiUtil.isEmoji(emoji)) {
+        if (EmojiUtil.isNotEmoji(emoji)) {
             throw new IllegalArgumentException(String.format("Invalid emoji syntax %s", emoji));
         }
     }
@@ -59,9 +70,9 @@ public final class BanEmojiCommand extends Command {
     public static void deleteMessageWithBlacklistedEmojis(String userId, Message message) {
         if (UserUtil.isNotModAdminOrBot(userId, message.getJDA())) {
             Optional<UserInfo> userInfo = UserInfoStorage.findUser(userId);
-            userInfo.ifPresent(info -> EmojiUtil.removeEmojiFromMessage(message, info.getBannedEmojis()));
+            userInfo.ifPresent(info -> removeEmojiFromMessage(message, info.getBannedEmojis()));
             Optional<UserInfo> allUsers = UserInfoStorage.findUser("all");
-            allUsers.ifPresent(info -> EmojiUtil.removeEmojiFromMessage(message, info.getBannedEmojis()));
+            allUsers.ifPresent(info -> removeEmojiFromMessage(message, info.getBannedEmojis()));
         }
     }
 
@@ -75,9 +86,25 @@ public final class BanEmojiCommand extends Command {
     private static void removeBlacklistedEmojiForId(User author, MessageReaction messageReaction) {
         Optional<UserInfo> userInfo = UserInfoStorage.findUser(author.getId());
         userInfo.ifPresent(info ->
-            EmojiUtil.removeEmojiFromReaction(author, messageReaction, info.getBannedEmojis()));
+            removeEmojiFromReaction(author, messageReaction, info.getBannedEmojis()));
         userInfo = UserInfoStorage.findUser("all");
         userInfo.ifPresent(info ->
-            EmojiUtil.removeEmojiFromReaction(author, messageReaction, info.getBannedEmojis()));
+            removeEmojiFromReaction(author, messageReaction, info.getBannedEmojis()));
+    }
+
+    private static void removeEmojiFromMessage(Message message, List<String> bannedEmojis) {
+        if (bannedEmojis.stream()
+            .anyMatch(emoji -> message.getContentRaw().contains(emoji))) {
+            message.delete().queue();
+            messageCycler.replyWithMessageAndDeleteAfterDelay(message.getChannel(), DELETE_TIMEOUT);
+        }
+    }
+
+    private static void removeEmojiFromReaction(User author, MessageReaction messageReaction, List<String> bannedEmojis) {
+        if (bannedEmojis.stream()
+            .anyMatch(emoji -> emoji.contains(messageReaction.getReactionEmote().getName()))) {
+            messageReaction.removeReaction(author).queue();
+            messageCycler.replyWithMessageAndDeleteAfterDelay(messageReaction.getChannel(), DELETE_TIMEOUT);
+        }
     }
 }

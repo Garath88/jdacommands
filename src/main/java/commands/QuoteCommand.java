@@ -23,7 +23,7 @@ public final class QuoteCommand extends Command {
 
     public QuoteCommand() {
         this.name = "quote";
-        this.help = "quote a message specified by a message id";
+        this.help = "quote a message specified with the id of the message.";
         this.arguments = "<message id>";
         this.botPermissions = new Permission[] {
             Permission.MESSAGE_READ
@@ -36,10 +36,9 @@ public final class QuoteCommand extends Command {
         try {
             String args = event.getArgs();
             ArgumentChecker.checkArgsBySpace(args, 1);
-            String[] items = args.split("\\s");
             GuildUtil.getGuild(event.getJDA()).getTextChannels().forEach(chan -> {
                 if (chan.canTalk()) {
-                    chan.getMessageById(items[0]).queue(message -> {
+                    chan.getMessageById(args).queue(message -> {
                         String messageContent = message.getContentDisplay();
                         if (!messageContent.isEmpty() || !message.getAttachments().isEmpty()) {
                             event.reply(createEmbed(message));
@@ -83,11 +82,14 @@ public final class QuoteCommand extends Command {
 
     private void addImage(EmbedBuilder builder, Message message) {
         List<Attachment> attachments = message.getAttachments();
-        Matcher findUrl = MediaPatterns.URL_PATTERN.matcher(message.getContentDisplay());
+        Matcher urlFinder = MediaPatterns.URL_PATTERN.matcher(message.getContentDisplay());
         if (!attachments.isEmpty()) {
             builder.setImage(attachments.get(0).getUrl());
-        } else if (findUrl.find()) {
-            builder.setImage(findUrl.group(0));
+        } else if (urlFinder.find()) {
+            String url = urlFinder.group(0);
+            if (MediaPatterns.IMAGE_PATTERN.matcher(url).find()) {
+                builder.setImage(url);
+            }
         }
     }
 

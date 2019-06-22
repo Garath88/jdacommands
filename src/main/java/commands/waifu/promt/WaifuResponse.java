@@ -25,10 +25,9 @@ public class WaifuResponse implements Consumer<MessageReceivedEvent> {
     @Override
     public void accept(MessageReceivedEvent e) {
         String response = e.getMessage()
-            .getContentRaw()
-            .toLowerCase();
+            .getContentRaw();
         try {
-            WaifuCommand.addWaifuRole(event, response, roles);
+            WaifuCommand.checkArgument(event, response, roles);
         } catch (IllegalArgumentException | InsufficientPermissionException | HierarchyException ex) {
             event.replyWarning(String.format("%s %s",
                 ex.getMessage(), event.getMessage().getAuthor().getAsMention()));

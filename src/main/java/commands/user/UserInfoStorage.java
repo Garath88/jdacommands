@@ -54,7 +54,7 @@ public final class UserInfoStorage {
                         userId, bannedEmojis));
                 }
             });
-            ret = EmojiUtil.addEmojisToMessage(jda, sb.toString());
+            ret = EmojiUtil.addEmojisToMessage(sb.toString(), jda);
         }
         return ret;
     }

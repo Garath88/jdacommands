@@ -7,11 +7,12 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 public final class SayStorage {
     private static boolean useDash = true;
     private static String id = null;
+    private static String lastMessageId = null;
 
     private SayStorage() {
     }
 
-    public static Optional<String> getChannel() {
+    static Optional<String> getChannelId() {
         return Optional.ofNullable(id);
     }
 
@@ -30,5 +31,13 @@ public final class SayStorage {
 
     static boolean getUseDash() {
         return useDash;
+    }
+
+    public static void setLastMessageId(String id) {
+        lastMessageId = id;
+    }
+
+    static String getLastMessageId() {
+        return lastMessageId;
     }
 }

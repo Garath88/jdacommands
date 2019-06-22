@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
+import commands.say.SayStorage;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -27,12 +29,27 @@ public final class MessageUtil {
     private MessageUtil() {
     }
 
+    public static void sendSayCommandMessageToChannel(String message, MessageChannel channel, boolean usePrefix) {
+        if (!StringUtils.isEmpty(message)) {
+            if (usePrefix) {
+                message = "- " + message;
+            }
+            if (!message.isEmpty()) {
+                channel.sendMessage(message)
+                    .queue(success ->
+                            SayStorage.setLastMessageId(success.getId()),
+                        fail -> {
+                        });
+            }
+        }
+    }
+
     public static void sendMessageToChannel(String message, MessageChannel channel, boolean usePrefix) {
         if (!StringUtils.isEmpty(message)) {
             if (usePrefix) {
                 message = "- " + message;
             }
-            MessageUtil.sendMessageToChannel(channel, message);
+            MessageUtil.sendMessageToChannel(message, channel);
         }
     }
 
@@ -45,11 +62,11 @@ public final class MessageUtil {
     public static void sendMessageToUser(User user, String message) {
         user.openPrivateChannel()
             .queue(PrivateChannelWrapper.userIsInGuild(pc ->
-                MessageUtil.sendMessageToChannel(pc, message)));
+                MessageUtil.sendMessageToChannel(message, pc)));
     }
 
     private static void sendMessageToChannel(MessageChannel channel, Message message) {
-        sendMessageToChannel(channel, message.getContentRaw());
+        sendMessageToChannel(message.getContentRaw(), channel);
         sendEmbedsToChannel(channel, message.getEmbeds());
         List<Message.Attachment> attachments = message.getAttachments();
         if (!attachments.isEmpty()) {
@@ -72,12 +89,22 @@ public final class MessageUtil {
         });
     }
 
-    private static void sendMessageToChannel(MessageChannel channel, String message) {
+    private static void sendMessageToChannel(String message, MessageChannel channel) {
         if (!message.isEmpty()) {
             channel.sendMessage(message)
                 .queue(success -> {
                 }, fail -> {
                 });
+        }
+    }
+
+    static void sendMessageToChannelAndDelete(String message, MessageChannel channel, int delayInMillis) {
+        if (!message.isEmpty()) {
+            channel.sendMessage(message)
+                .queue(sentMessage ->
+                        TimeoutUtil.setTimeout(() -> sentMessage.delete().queue(), delayInMillis),
+                    fail -> {
+                    });
         }
     }
 
@@ -116,5 +143,11 @@ public final class MessageUtil {
             channelResponse, timeoutMinutes, TimeUnit.MINUTES, () -> event.reply(
                 String.format("- Sorry you were too slow to respond %s :frowning: \n"
                     + retryMsg, user.getAsMention())), user);
+    }
+
+    public static String addMentionsAndEmojis(String message, JDA jda) {
+        message = MentionUtil.addMentionsToMessage(message, jda);
+        message = EmojiUtil.addEmojisToMessage(message, jda);
+        return message;
     }
 }

@@ -40,7 +40,7 @@ public final class RemoveEmojiBanCommand extends Command {
     }
 
     private void validateEmoji(String emoji) {
-        if (!EmojiUtil.isEmoji(emoji)) {
+        if (EmojiUtil.isNotEmoji(emoji)) {
             throw new IllegalArgumentException(String.format("Invalid emoji syntax %s", emoji));
         }
     }
