@@ -11,7 +11,6 @@ import commands.Permissions;
 import commands.thread.ThreadCommand;
 import commands.thread.ThreadInfo;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import utils.MessageUtil;
@@ -62,9 +61,6 @@ public final class SayCommand extends Command {
         TextChannel textChannel = TextChannelUtil.getChannel(channelId, event.getEvent());
         List<Message.Attachment> attachments = event.getMessage().getAttachments();
         if (StringUtils.isNotEmpty(message) || !attachments.isEmpty()) {
-            if (event.isFromType(ChannelType.PRIVATE)) {
-                message = MessageUtil.addMentionsAndEmojis(message, event.getJDA());
-            }
             MessageUtil.sendAttachmentsToChannel(attachments, textChannel);
             MessageUtil.sendSayCommandMessageToChannel(message, textChannel, SayStorage.getUseDash());
         } else {

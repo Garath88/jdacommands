@@ -16,11 +16,12 @@ public class WaifuRoles implements Roles {
         FUTABA("Futaba · Lily · Ramses", "Team Futaba"),
         IERI("Team Lieri Bishop", "Team Lieri"),
         INGRID("Team Ingrid"),
-        KIRA("Kira Kushan", "Team Kira"),
+        KIRA("Team Kira Kushan", "Team Kira"),
         KURENAI("Team Kurenai"),
         MAYA("Team Maya Cordelia", "Team Maya"),
         MU("Team Murasaki"),
         NAOMI("Team Naomi Evans", "Team Naomi"),
+        OBORO("Oboro Squad"),
         RINKO("Rinko is #1"),
         SAKURA("Sakura's Harbingers"),
         SHIRANUI("Team Mamakaze"),
@@ -28,7 +29,6 @@ public class WaifuRoles implements Roles {
         SNAKE("Team Snake Lady", "Team SnakeLady"),
         TOKIKO("Team Tokiko"),
         YUKI("Team Yukikaze", "Team Yuki"),
-        OBORO("Oboro Squad"),
         ZAIDAN("Zaidan's Interns"),
         ;
 

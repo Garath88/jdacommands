@@ -9,7 +9,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import commands.Permissions;
 import net.dv8tion.jda.core.JDA;
 import utils.ArgumentChecker;
-import utils.MessageUtil;
 
 public class SayEditCommand extends Command {
 
@@ -40,11 +39,10 @@ public class SayEditCommand extends Command {
             String.format("Invalid message id \"%s\", id must be numeric", messageId));
         if (!text.isEmpty()) {
             JDA jda = event.getJDA();
-            final String newText = MessageUtil.addMentionsAndEmojis(text, jda);
             String channelId = SayStorage.getChannelId().orElseThrow(() -> new IllegalStateException("Not talking in any channel!"));
             jda.getTextChannelById(channelId).getMessageById(messageId).queue(message -> {
                 if (message.getAuthor().equals(event.getSelfUser())) {
-                    message.editMessage(newText).queue();
+                    message.editMessage(text).queue();
                 } else {
                     event.replyWarning("I did not write that message!");
                 }
