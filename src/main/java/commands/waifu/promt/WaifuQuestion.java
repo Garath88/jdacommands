@@ -11,7 +11,8 @@ public final class WaifuQuestion {
     }
 
     public static void perform(CommandEvent event, EventWaiter waiter, Roles roles) {
-        event.reply("Please type in the **name** of your waifu");
+        String author = event.getAuthor().getAsMention();
+        event.reply(String.format("Please type in the **name** of your waifu %s", author));
         MessageUtil.waitForResponseInChannel(
             event, waiter, new WaifuResponse(event, waiter, roles), 1,
             "");

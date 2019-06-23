@@ -108,19 +108,19 @@ public class WaifuCommand extends Command {
     private static void addWaifuRole(CommandEvent event, String input, Roles roles) {
         Guild guild = GuildUtil.getGuild(event.getJDA());
         Member member = guild.getMember(event.getAuthor());
-        addDefaultWaifuSupportRole(guild, member);
         String waifu = validateAndFindWaifuRole(input, roles, guild.getJDA());
+        addDefaultWaifuSupportRole(guild, member);
         removePreviousWaifuRole(guild, member, roles);
         Role guildRole = RoleUtil.findRole(guild, roles.getRole(waifu));
 
-        doSakuraResponses(waifu, event);
-
+        doResponses(waifu, input, event);
         guild.getController().addSingleRoleToMember(member, guildRole)
             .queue(success -> changeUserNicknameBasedOnRole(guildRole, member, roles, event));
     }
 
     private static void removeWaifuRoles(Roles roles, CommandEvent event) {
         if (event.getSelfUser().getName().equals("Oboro")) {
+            event.reply("- Nonono I insist..");
             addWaifuRole(event, "Oboro", roles);
         } else {
             Guild guild = GuildUtil.getGuild(event.getJDA());
@@ -160,11 +160,11 @@ public class WaifuCommand extends Command {
             if (waifu.toLowerCase().contains("oboro")) {
                 throw new IllegalArgumentException(
                     "Oboro?! Are you really sure?\n"
-                        + "Well then I think you should ask her for that..");
+                        + "Then I think you should ask her with **-waifu**");
             } else {
                 Optional<String> waifuRole = findBestMatchingRole(waifu, roles);
                 if (!waifuRole.isPresent()) {
-                    throw new IllegalArgumentException(String.format("Umm.. Who is \"%s\" again?",
+                    throw new IllegalArgumentException(String.format("I can't add \"%s\" sorry!",
                         waifu));
                 }
                 return waifuRole.get();
@@ -209,7 +209,11 @@ public class WaifuCommand extends Command {
             int numberOfCharactersToBeRemoved = newNickname.length() - MAX_CHAR_LENGTH;
             newNickname = String.format("%s \"%s\"",
                 currentNickname.substring(0, currentNickname.length() - numberOfCharactersToBeRemoved), roles.getRoleRepresentation(role));
-            event.reply("- Your nickname was a bit too long so I had to shorten it.. Sorry!");
+            if (event.getSelfUser().getName().equals("Sakura")) {
+                event.reply("- Your nickname was a bit too long so I had to shorten it.. Sorry!");
+            } else {
+                event.reply("- What kind of idiot uses such a long and ridiculous name?");
+            }
         }
 
         if (!newNickname.equals(currentNickname)) {
@@ -244,7 +248,7 @@ public class WaifuCommand extends Command {
         return roleNames.collect(Collectors.joining(", "));
     }
 
-    private static void doSakuraResponses(String waifu, CommandEvent event) {
+    private static void doResponses(String waifu, String input, CommandEvent event) {
         if (event.getSelfUser().getName().equals("Sakura")) {
             if (waifu.equals("sakura")) {
                 event.reply(selfMessageCycler.getNextMessageAfterTimer());
@@ -252,6 +256,10 @@ public class WaifuCommand extends Command {
                 event.reply(zaidanMessageCycler.getNextMessageAfterTimer());
             } else {
                 event.reply(otherWaifusMessageCycler.getNextMessageAfterTimer());
+            }
+        } else {
+            if (!input.toLowerCase().contains("oboro")) {
+                event.reply("- That pig? Surely you misspoke, but don't worry I wont punish you for your incompetence...");
             }
         }
     }

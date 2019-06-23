@@ -26,6 +26,7 @@ public class WaifuRoles implements Roles {
         SAKURA("Sakura's Harbingers"),
         SHIRANUI("Team Mamakaze"),
         SHIZURU("Team Shizuru"),
+        KALYA("Team Snake Lady", "Team SnakeLady"),
         SNAKE("Team Snake Lady", "Team SnakeLady"),
         TOKIKO("Team Tokiko"),
         YUKI("Team Yukikaze", "Team Yuki"),

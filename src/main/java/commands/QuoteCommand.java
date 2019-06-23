@@ -41,7 +41,10 @@ public final class QuoteCommand extends Command {
                     chan.getMessageById(args).queue(message -> {
                         String messageContent = message.getContentDisplay();
                         if (!messageContent.isEmpty() || !message.getAttachments().isEmpty()) {
-                            event.reply(createEmbed(message));
+                            User user = event.getAuthor();
+                            event.reply(String.format("``%s#%s quotes:``",
+                                user.getName(), user.getDiscriminator()),
+                                createEmbed(message));
                         }
                         event.getMessage().delete().queue();
                     }, fail -> {
