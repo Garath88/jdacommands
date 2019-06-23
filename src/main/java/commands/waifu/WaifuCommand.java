@@ -160,7 +160,7 @@ public class WaifuCommand extends Command {
             if (waifu.toLowerCase().contains("oboro")) {
                 throw new IllegalArgumentException(
                     "Oboro?! Are you really sure?\n"
-                        + "Then I think you should ask her with **-waifu**");
+                        + "- Then I think you should try asking her with **-waifu**");
             } else {
                 Optional<String> waifuRole = findBestMatchingRole(waifu, roles);
                 if (!waifuRole.isPresent()) {

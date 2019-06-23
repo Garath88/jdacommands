@@ -9,6 +9,7 @@ import com.google.common.base.CaseFormat;
 public class WaifuRoles implements Roles {
 
     enum Waifus {
+        ALICE("Team Alice Walkure", "Team Alice"),
         ANNEROSE("Team Annerose"),
         ASAGI("Team Asagi"),
         ASUKA("Team Asuka"),
@@ -16,6 +17,7 @@ public class WaifuRoles implements Roles {
         FUTABA("Futaba · Lily · Ramses", "Team Futaba"),
         IERI("Team Lieri Bishop", "Team Lieri"),
         INGRID("Team Ingrid"),
+        KANA("Team Mama Kana", "Team Kana"),
         KIRA("Team Kira Kushan", "Team Kira"),
         KURENAI("Team Kurenai"),
         MAYA("Team Maya Cordelia", "Team Maya"),
@@ -23,6 +25,7 @@ public class WaifuRoles implements Roles {
         NAOMI("Team Naomi Evans", "Team Naomi"),
         OBORO("Oboro Squad"),
         RINKO("Rinko is #1"),
+        SAIKA("Team Fuuma Saika"),
         SAKURA("Sakura's Harbingers"),
         SHIRANUI("Team Mamakaze"),
         SHIZURU("Team Shizuru"),
