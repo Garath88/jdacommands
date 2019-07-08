@@ -11,13 +11,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import utils.ArgumentChecker;
-import utils.MessageUtil;
-import utils.TextChannelUtil;
 
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import utils.ArgumentChecker;
+import utils.MessageUtil;
+import utils.TextChannelUtil;
 
 public class CopyMediaCommand extends Command {
     private static final int MAX_HISTORY_LIMIT = 10;
@@ -31,7 +32,8 @@ public class CopyMediaCommand extends Command {
         this.arguments = "<from chan id> <to chan id> <starting msg id> [end msg id]";
         this.ownerCommand = true;
         this.botPermissions = new Permission[] {
-            Permission.MANAGE_CHANNEL
+            Permission.MANAGE_CHANNEL,
+            Permission.MESSAGE_READ
         };
     }
 
@@ -49,8 +51,7 @@ public class CopyMediaCommand extends Command {
                     MessageUtil.sendAttachmentsToChannel(firstMsg.getAttachments(), toChannel);
                     postImages(items[2], MAX_HISTORY_LIMIT, lastId);
                 }, fail -> event.replyWarning("Could not find first message"));
-
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | InsufficientPermissionException e) {
             event.replyWarning(e.getMessage());
         }
     }

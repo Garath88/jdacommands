@@ -25,7 +25,7 @@ public class ThreadNameResponse implements Consumer<MessageReceivedEvent> {
             .toLowerCase();
         event.reply("Please type in a **description** for the thread:");
         MessageUtil.waitForResponseInChannel(event, waiter,
-            new ThreadDescriptionResponse(event, name, ThreadCommand::createNewThread), 1,
+            new ThreadDescriptionResponse(event, name, ThreadCommand::createNewThread), 2,
             "");
     }
 }

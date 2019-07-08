@@ -34,7 +34,7 @@ public class ChooseCommand extends Command {
     protected void execute(CommandEvent event) {
         try {
             String arguments = event.getArgs();
-            ArgumentChecker.checkArgsBySpace(arguments, 2);
+            ArgumentChecker.checkArgsBySpaceRequires(arguments, 2);
             String[] items = arguments.split("\\s+");
             event.replySuccess("I choose `" + items[new Random().nextInt(items.length)] + "`");
         } catch (IllegalArgumentException e) {

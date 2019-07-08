@@ -35,7 +35,7 @@ public final class SetChanCommand extends Command {
     }
 
     private void validateInput(String args) {
-        ArgumentChecker.checkArgsBySpace(args, 1);
+        ArgumentChecker.checkArgsBySpaceRequires(args, 1);
         Preconditions.checkArgument(StringUtils.isNumeric(args),
             String.format("Invalid channel id \"%s\", id must be numeric", args));
     }

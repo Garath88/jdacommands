@@ -27,7 +27,7 @@ public final class RemoveEmojiBanCommand extends Command {
     protected void execute(CommandEvent event) {
         try {
             String args = event.getArgs();
-            ArgumentChecker.checkArgsBySpace(args, 2);
+            ArgumentChecker.checkArgsBySpaceRequires(args, 2);
             String[] items = args.split("\\s");
             validateEmoji(items[0]);
             String user = UserUtil.validateAndGetUser(items[1], event);

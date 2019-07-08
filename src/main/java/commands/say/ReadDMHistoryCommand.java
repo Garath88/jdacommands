@@ -43,7 +43,7 @@ public class ReadDMHistoryCommand extends Command {
     }
 
     private void validateArguments(String args) {
-        ArgumentChecker.checkArgsBySpace(args, 2);
+        ArgumentChecker.checkArgsBySpaceRequires(args, 2);
         String[] items = args.split("\\s");
         String userId = items[0];
         String limit = items[1];

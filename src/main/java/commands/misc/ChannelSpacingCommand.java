@@ -2,7 +2,6 @@ package commands.misc;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -29,7 +28,7 @@ public class ChannelSpacingCommand extends Command {
     protected void execute(CommandEvent event) {
         try {
             String arguments = event.getArgs();
-            ArgumentChecker.checkArgsBySpace(arguments, 1);
+            ArgumentChecker.checkArgsBySpaceRequires(arguments, 1);
             List<TextChannel> textChannels = event.getGuild()
                 .getTextChannels();
             if (arguments.equals("dash")) {
@@ -65,11 +64,9 @@ public class ChannelSpacingCommand extends Command {
             }
         });
         if (!failChannelNames.isEmpty()) {
-            String failed = failChannelNames.stream()
-                .collect(Collectors.joining(","));
+            String failed = String.join(",", failChannelNames);
             event.reply(String.format("Lacking permission to rename channel: %s", failed));
         }
-        return successChannelNames.stream()
-            .collect(Collectors.joining(", "));
+        return String.join(", ", successChannelNames);
     }
 }

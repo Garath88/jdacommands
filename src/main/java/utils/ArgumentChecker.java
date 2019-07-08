@@ -11,7 +11,7 @@ public final class ArgumentChecker {
     private ArgumentChecker() {
     }
 
-    public static void checkArgsBySpace(String arguments, int requiredArguments) {
+    public static void checkArgsBySpaceRequires(String arguments, int requiredArguments) {
         if (getNumberOfArguments(arguments, SPLIT_BY_SPACE) != requiredArguments) {
             throw new IllegalArgumentException(String.format(INVALID_ARGS_MSG,
                 requiredArguments));

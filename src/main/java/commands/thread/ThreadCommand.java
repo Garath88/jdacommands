@@ -126,7 +126,7 @@ public class ThreadCommand extends Command {
             .setNSFW(true)
             .setParent(threadCategory)
             .queue(chan -> doTasks(chan, event, description, storeInDatabase));
-        event.reply(String.format("Succesfully created new thread: **%s**", name));
+        event.reply(String.format("Successfully created new thread: **%s**", name));
     }
 
     private static void validateThreadName(net.dv8tion.jda.core.entities.Category customCategory, String topic) {

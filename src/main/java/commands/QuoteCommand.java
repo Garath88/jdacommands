@@ -35,14 +35,14 @@ public final class QuoteCommand extends Command {
     protected void execute(CommandEvent event) {
         try {
             String args = event.getArgs();
-            ArgumentChecker.checkArgsBySpace(args, 1);
+            ArgumentChecker.checkArgsBySpaceRequires(args, 1);
             GuildUtil.getGuild(event.getJDA()).getTextChannels().forEach(chan -> {
                 if (chan.canTalk()) {
                     chan.getMessageById(args).queue(message -> {
                         String messageContent = message.getContentDisplay();
                         if (!messageContent.isEmpty() || !message.getAttachments().isEmpty()) {
                             User user = event.getAuthor();
-                            event.reply(String.format("``%s#%s quotes:``",
+                            event.reply(String.format("``%s#%s quoted:``",
                                 user.getName(), user.getDiscriminator()),
                                 createEmbed(message));
                         }

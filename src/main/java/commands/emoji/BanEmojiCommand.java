@@ -48,13 +48,14 @@ public final class BanEmojiCommand extends Command {
             if (args.isEmpty()) {
                 event.reply(UserInfoStorage.listBannedEmojisForAllUsers(event.getJDA()));
             } else {
-                ArgumentChecker.checkArgsBySpace(args, 2);
+                ArgumentChecker.checkArgsBySpaceRequires(args, 2);
                 String[] items = args.split("\\s");
                 validateEmoji(items[0]);
                 String user = UserUtil.validateAndGetUser(items[1], event);
                 UserInfoStorage.addEmojiAndUser(items[0], items[1]);
                 event.reply(String.format("Successfully added emoji %s to blacklist for user %s",
                     items[0], user));
+                messageCycler.resetMessageCounter();
             }
         } catch (IllegalArgumentException e) {
             event.replyWarning(e.getMessage());

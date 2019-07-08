@@ -26,6 +26,7 @@ public class DeleteThreadCommand extends Command {
     public DeleteThreadCommand(EventWaiter waiter) {
         this.waiter = waiter;
         this.name = "deletethread";
+        this.aliases = new String[] { "delthread" };
         this.help = "choose a created thread to delete.";
         this.botPermissions = new Permission[] {
             Permission.MANAGE_CHANNEL
@@ -34,35 +35,50 @@ public class DeleteThreadCommand extends Command {
 
     @Override
     protected void execute(CommandEvent event) {
-        try {
-            ArgumentChecker.checkArgsBySpace(event.getArgs(), 0);
-            ThreadDbInfo threadInfo = ThreadDbTable.getThreadInfoFromUser(event.getMember().getUser());
+        String args = event.getArgs();
+        ThreadDbInfo userThreadInfo = ThreadDbTable.getThreadInfoFromUser(event.getMember().getUser());
+        if (args.isEmpty()) {
             event.reply(String.format("Listing created threads for %s: %n",
                 event.getMessage().getAuthor().getAsMention()));
-            event.reply(threadInfo.getlistedChannels());
-            if (!threadInfo.getThreadIds().isEmpty()) {
-                event.reply("Please type in the number of the thread you want to delete.");
-                // wait for a response
-                waiter.waitForEvent(MessageReceivedEvent.class,
-                    // make sure it's by the same user, and in the same channel
-                    e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()),
-                    // respond, inserting the name they listed into the response
-                    e -> deleteChannel(event, e.getMessage().getContentRaw(), threadInfo),
-                    // if the user takes more than a minute, time out
-                    RESPONSE_TIMEOUT_IN_SEC, TimeUnit.SECONDS, () -> event.reply(String.format("Sorry %s, you took too long.",
-                        event.getMessage().getAuthor().getAsMention())));
+            event.reply(userThreadInfo.getlistedChannels());
+            if (!userThreadInfo.getThreadIds().isEmpty()) {
+                promptUser(userThreadInfo, event);
             }
-        } catch (IllegalArgumentException e) {
-            event.replyWarning(e.getMessage());
+        } else {
+            try {
+                TextChannel threadToDelete = getThreadToDeleteByName(args, event.getJDA());
+                userThreadInfo.getThreadIds().stream()
+                    .filter(id -> id == threadToDelete.getIdLong())
+                    .findFirst()
+                    .orElseThrow(() -> createThreadNotFoundException(args));
+                deleteChannel(event, threadToDelete);
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.replyWarning(ex.getMessage());
+            }
         }
     }
 
-    private void deleteChannel(CommandEvent event, String msgWithNumber,
-        ThreadDbInfo threadInfo) {
+    private void promptUser(ThreadDbInfo userThreadInfo, CommandEvent event) {
+        event.reply("Please type in the number of the thread you want to delete.");
+        waiter.waitForEvent(MessageReceivedEvent.class,
+            e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()),
+            e -> {
+                String msgWithNumber = e.getMessage().getContentRaw();
+                try {
+                    validateInput(msgWithNumber, userThreadInfo.getThreadIds().size());
+                    TextChannel threadToDelete =
+                        getThreadToDeleteByNumber(event.getJDA(), msgWithNumber, userThreadInfo);
+                    deleteChannel(event, threadToDelete);
+                } catch (IllegalArgumentException | IllegalStateException ex) {
+                    event.replyWarning(ex.getMessage());
+                }
+            },
+            RESPONSE_TIMEOUT_IN_SEC, TimeUnit.SECONDS, () -> event.reply(String.format("Sorry %s, you took too long.",
+                event.getMessage().getAuthor().getAsMention())));
+    }
+
+    private void deleteChannel(CommandEvent event, TextChannel threadToDelete) {
         try {
-            validateInput(msgWithNumber, threadInfo.getThreadIds().size());
-            TextChannel threadToDelete =
-                getThreadToDelete(event.getJDA(), msgWithNumber, threadInfo);
             if (!event.getChannel().getId().equals(threadToDelete.getId())) {
                 handleDeletionOfThread(threadToDelete);
                 String channelName = threadToDelete.getName();
@@ -92,7 +108,17 @@ public class DeleteThreadCommand extends Command {
         }
     }
 
-    private TextChannel getThreadToDelete(JDA jda, String number, ThreadDbInfo threadInfo) {
+    private TextChannel getThreadToDeleteByName(String args, JDA jda) {
+        return CategoryUtil.getThreadCategory(jda)
+            .getTextChannels()
+            .stream()
+            .filter(thread -> thread.getName().replaceAll("[\u2004]", " ")
+                .equals(args))
+            .findFirst()
+            .orElseThrow(() -> createThreadNotFoundException(args));
+    }
+
+    private TextChannel getThreadToDeleteByNumber(JDA jda, String number, ThreadDbInfo threadInfo) {
         long threadId = threadInfo.getThreadIds()
             .get(Integer.valueOf(number) - 1);
         return CategoryUtil.getThreadCategory(jda).getTextChannels().stream()
@@ -102,12 +128,16 @@ public class DeleteThreadCommand extends Command {
     }
 
     private void validateInput(String args, int numberOfchannels) {
-        ArgumentChecker.checkArgsBySpace(args, 1);
+        ArgumentChecker.checkArgsBySpaceRequires(args, 1);
         Preconditions.checkArgument(StringUtils.isNumeric(args),
             String.format("Invalid thread id \"%s\", id must be numeric", args));
-        Preconditions.checkArgument(Double.parseDouble(args) != 0,
+        Preconditions.checkArgument(Integer.valueOf(args) != 0,
             "ID must be greater than zero!");
         Preconditions.checkArgument(Integer.valueOf(args) <= numberOfchannels,
             String.format("No thread found with ID #%s", args));
+    }
+
+    private IllegalStateException createThreadNotFoundException(String threadName) {
+        return new IllegalStateException(String.format("You have no thread with name \"**%s**\"", threadName));
     }
 }

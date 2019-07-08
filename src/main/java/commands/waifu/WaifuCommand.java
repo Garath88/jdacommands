@@ -98,7 +98,7 @@ public class WaifuCommand extends Command {
     }
 
     public static void checkArgument(CommandEvent event, String waifu, Roles roles) {
-        if (waifu.equals("none")) {
+        if (waifu.equalsIgnoreCase("none")) {
             removeWaifuRoles(roles, event);
         } else {
             addWaifuRole(event, waifu, roles);
@@ -140,9 +140,16 @@ public class WaifuCommand extends Command {
                     }
                     String newNickname = getNicknameWithoutTeamname(currentNickname, roles);
                     guild.getController().setNickname(member, newNickname)
-                        .queue(success2 -> event.reply(String.format("Successfully removed the roles: %s for %s",
-                            getRoleNames(rolesToBeRemoved, event),
-                            user.getAsMention())));
+                        .queue(success2 -> {
+                            if (rolesToBeRemoved.isEmpty()) {
+                                event.reply(String.format("You have no waifu %s",
+                                    user.getAsMention()));
+                            } else {
+                                event.reply(String.format("Successfully removed the roles: %s for %s",
+                                    getRoleNames(rolesToBeRemoved, event),
+                                    user.getAsMention()));
+                            }
+                        });
                 });
         }
     }
