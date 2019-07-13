@@ -6,7 +6,7 @@ import java.util.List;
 
 import utils.TxtReader;
 
-final class MariaDbConfig {
+public final class MariaDbConfig {
     private static final URL CONFIG_FILE = MariaDbConfig.class.getResource("/configuration/mariadb.txt");
     private final String dbUrl;
     private final String user;
@@ -34,7 +34,7 @@ final class MariaDbConfig {
         return pass;
     }
 
-    String getDbName() {
+    public String getDbName() {
         return dbName;
     }
 }

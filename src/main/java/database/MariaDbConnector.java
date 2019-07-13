@@ -27,7 +27,7 @@ public final class MariaDbConnector {
     private MariaDbConnector() {
     }
 
-    static synchronized ResultSet executeSql(String sql) {
+    public static synchronized ResultSet executeSql(String sql) {
         if (config != null) {
             try (Connection conn = DriverManager.getConnection(
                 config.getDbUrl(), config.getUser(), config.getPass());
@@ -36,10 +36,11 @@ public final class MariaDbConnector {
                 if (!rs.isBeforeFirst()) {
                     return null;
                 } else {
-                    CachedRowSet rowset = RowSetProvider.newFactory()
-                        .createCachedRowSet();
-                    rowset.populate(rs);
-                    return rowset;
+                    try (CachedRowSet rowset = RowSetProvider.newFactory()
+                        .createCachedRowSet()) {
+                        rowset.populate(rs);
+                        return rowset;
+                    }
                 }
             } catch (SQLException e) {
                 LOGGER.error("Failed to query database", e);
@@ -48,7 +49,7 @@ public final class MariaDbConnector {
         return null;
     }
 
-    static MariaDbConfig getConfig() {
+    public static MariaDbConfig getConfig() {
         return config;
     }
 }

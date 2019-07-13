@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -43,8 +44,9 @@ public class CopyMediaCommand extends Command {
             String[] items = event.getArgs().split("\\s");
             validateInput(items);
             String lastId = items.length > MINIMUM_ARGS ? items[3] : "";
-            fromChannel = TextChannelUtil.getChannel(items[0], event.getEvent());
-            toChannel = TextChannelUtil.getChannel(items[1], event.getEvent());
+            JDA jda = event.getJDA();
+            fromChannel = TextChannelUtil.getChannel(items[0], jda);
+            toChannel = TextChannelUtil.getChannel(items[1], jda);
             fromChannel.getMessageById(items[2]).queue(
                 firstMsg -> {
                     checkMessageForPatternMatch(firstMsg.getContentRaw(), toChannel);

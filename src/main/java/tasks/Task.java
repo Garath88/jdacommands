@@ -19,7 +19,7 @@ public abstract class Task extends TimerTask {
         return !running.get();
     }
 
-    void scheduleTask() {
+    public void scheduleTask() {
         if (isNotRunning()) {
             running.set(true);
             Timer timer = new Timer(true);

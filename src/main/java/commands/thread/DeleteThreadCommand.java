@@ -10,8 +10,8 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import database.ThreadDbInfo;
-import database.ThreadDbTable;
+import commands.thread.database.ThreadDbInfo;
+import commands.thread.database.ThreadDbTable;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.TextChannel;

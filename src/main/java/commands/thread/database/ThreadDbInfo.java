@@ -1,4 +1,4 @@
-package database;
+package commands.thread.database;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package database;
+package commands.thread.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import database.MariaDbConnector;
 import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.ISnowflake;
 import net.dv8tion.jda.core.entities.Message;
@@ -30,8 +31,9 @@ public final class ThreadDbTable {
     public static void addThread(User user, Channel thread) {
         String sql = String.format("INSERT INTO %s.%s "
                 + "(user,user_id, name, id) "
-                + "VALUES ('%s#%s', '%s', '%s', '%s')",
-            DB_NAME, TABLE_NAME, user.getName(), user.getDiscriminator(), user.getId(), thread.getName(), thread.getId());
+                + "VALUES ('%s', '%s', '%s', '%s')",
+            DB_NAME, TABLE_NAME,
+            user.getAsTag(), user.getId(), thread.getName(), thread.getId());
         executeQuery(sql);
     }
 

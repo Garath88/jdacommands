@@ -2,6 +2,7 @@ package commands;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import com.jagrosh.jdautilities.command.Command;
@@ -39,20 +40,21 @@ public final class QuoteCommand extends Command {
             GuildUtil.getGuild(event.getJDA()).getTextChannels().forEach(chan -> {
                 if (chan.canTalk()) {
                     chan.getMessageById(args).queue(message -> {
-                        String messageContent = message.getContentDisplay();
-                        if (!messageContent.isEmpty() || !message.getAttachments().isEmpty()) {
-                            User user = event.getAuthor();
-                            event.reply(String.format("``%s#%s quoted:``",
-                                user.getName(), user.getDiscriminator()),
+                        if (!message.getContentDisplay().isEmpty() || !message.getAttachments().isEmpty()) {
+                            event.reply(String.format("``%s quoted:``",
+                                event.getAuthor().getAsTag()),
                                 createEmbed(message));
+                            event.getMessage().delete().queue();
                         }
-                        event.getMessage().delete().queue();
                     }, fail -> {
                     });
                 }
             });
         } catch (IllegalArgumentException e) {
-            event.replyWarning(e.getMessage());
+            event.getMessage().delete().queueAfter(10, TimeUnit.SECONDS);
+            event.getChannel().sendMessage(e.getMessage())
+                .queue(success -> success.delete()
+                    .queueAfter(10, TimeUnit.SECONDS));
         }
     }
 
@@ -70,10 +72,7 @@ public final class QuoteCommand extends Command {
         User author = message.getAuthor();
         String messageId = String.format("https://dummyimage.com/600x400/000/fff&text=%s",
             message.getId());
-        builder.setAuthor(String.format("%s#%s", author.getName(),
-            author.getDiscriminator()),
-            messageId,
-            author.getAvatarUrl());
+        builder.setAuthor(author.getAsTag(), messageId, author.getAvatarUrl());
     }
 
     private void createFooter(EmbedBuilder builder, Message message) {

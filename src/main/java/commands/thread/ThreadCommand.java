@@ -9,17 +9,17 @@ import org.apache.commons.lang3.StringUtils;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import commands.quiz.QuizQuestion;
 
+import commands.quiz.QuizQuestion;
+import commands.thread.database.ThreadDbInfo;
+import commands.thread.database.ThreadDbTable;
 import commands.thread.prompt.ThreadQuestion;
-import database.ThreadDbInfo;
-import database.ThreadDbTable;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.Event;
 import utils.ArgumentChecker;
 import utils.CategoryUtil;
 import utils.RoleUtil;
@@ -141,7 +141,7 @@ public class ThreadCommand extends Command {
         setDenyForRole(threadChannel, event, QuizQuestion.RULES_ROLE, Permission.MESSAGE_READ);
         setDenyForRole(threadChannel, event, event.getGuild().getPublicRole().getName(), Permission.CREATE_INSTANT_INVITE);
 
-        TextChannel threadTextChannel = findThreadTextChannel(threadChannel, event.getEvent());
+        TextChannel threadTextChannel = findThreadTextChannel(threadChannel, event.getJDA());
         if (storeInDatabase) {
             ThreadDbTable.addThread(event.getMember()
                 .getUser(), threadChannel);
@@ -167,9 +167,8 @@ public class ThreadCommand extends Command {
         }
     }
 
-    /*TODO: is event needed? perhaps use JDA?*/
-    private static TextChannel findThreadTextChannel(Channel threadChannel, Event event) {
-        return TextChannelUtil.getChannel(threadChannel.getId(), event);
+    private static TextChannel findThreadTextChannel(Channel threadChannel, JDA jda) {
+        return TextChannelUtil.getChannel(threadChannel.getId(), jda);
     }
 
     private static void sendTopicHasBeenSetMsg(TextChannel threadTextChannel, String topic) {

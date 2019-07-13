@@ -25,7 +25,7 @@ public final class SetChanCommand extends Command {
         try {
             String args = event.getArgs();
             validateInput(args);
-            TextChannel channel = TextChannelUtil.getChannel(args, event.getEvent());
+            TextChannel channel = TextChannelUtil.getChannel(args, event.getJDA());
             SayStorage.setChannel(channel.getId());
             event.reply(
                 String.format("Now talking in channel: **%s** ", channel.getName()));

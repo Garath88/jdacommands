@@ -58,7 +58,7 @@ public final class SayCommand extends Command {
     private void say(CommandEvent event, String message) {
         String channelId = SayStorage.getChannelId().orElseThrow(() -> new IllegalArgumentException(String.format("You haven't added a text channel to talk in! \n "
             + "Please use the **%s%s_set_chan** command", event.getClient().getPrefix(), botName.toLowerCase())));
-        TextChannel textChannel = TextChannelUtil.getChannel(channelId, event.getEvent());
+        TextChannel textChannel = TextChannelUtil.getChannel(channelId, event.getJDA());
         List<Message.Attachment> attachments = event.getMessage().getAttachments();
         if (StringUtils.isNotEmpty(message) || !attachments.isEmpty()) {
             MessageUtil.sendAttachmentsToChannel(attachments, textChannel);

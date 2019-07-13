@@ -53,8 +53,8 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
                         + retryMessage,
                     EmojiUtil.getCustomEmoji(jda, "feelsbadman")));
             MessageUtil.sendMessageToUser(guild.getOwner().getUser(),
-                String.format("%s#%s: %s%n%s",
-                    user.getName(), user.getDiscriminator(), response, user.getAsMention()));
+                String.format("%s: %s%n%s",
+                    user.getAsTag(), response, user.getAsMention()));
         }
     }
 

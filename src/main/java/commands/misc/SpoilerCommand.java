@@ -2,12 +2,12 @@ package commands.misc;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import utils.ArgumentChecker;
-import utils.UriEncodingUtil;
 
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.User;
+import utils.ArgumentChecker;
+import utils.UriEncodingUtil;
 
 public class SpoilerCommand extends Command {
     public SpoilerCommand() {
@@ -30,7 +30,7 @@ public class SpoilerCommand extends Command {
             String description = String.format("[Hover to view](https://dummyimage.com/600x400/000/fff&text=%s \"%s\")",
                 uriEncodedText, arguments);
             User user = event.getAuthor();
-            String footer = String.format("by %s#%s", user.getName(), user.getDiscriminator());
+            String footer = String.format("by %s", user.getAsTag());
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle("Spoiler")
                 .setDescription(description)

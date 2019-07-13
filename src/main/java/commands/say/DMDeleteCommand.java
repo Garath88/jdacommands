@@ -1,6 +1,6 @@
 package commands.say;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,12 +31,8 @@ public class DMDeleteCommand extends Command {
             validateArguments(args);
             User user = UserUtil.findUser(args, event);
             user.openPrivateChannel().queue(
-                PrivateChannelWrapper.userIsInGuild(pc -> pc.getIterableHistory().queue(history -> {
-                    Optional<Message> latestMsg = history.stream()
-                        .filter(msg -> msg.getAuthor().isBot())
-                        .findFirst();
-                    latestMsg.ifPresent(msg -> msg.delete().queue());
-                })),
+                PrivateChannelWrapper.userIsInGuild(pc -> pc.getIterableHistory().limit(30)
+                    .queue(DMDeleteCommand::deleteLatestMessage)),
                 fail -> {
                 });
         } catch (IllegalArgumentException e) {
@@ -49,6 +45,14 @@ public class DMDeleteCommand extends Command {
         String userId = args.replaceAll("\\s+", "");
         Preconditions.checkArgument(StringUtils.isNumeric(userId),
             String.format("Invalid user id \"%s\", id must be numeric", userId));
+    }
+
+    private static void deleteLatestMessage(List<Message> history) {
+        history.stream()
+            .filter(msg -> msg.getAuthor().isBot())
+            .findFirst()
+            .ifPresent(latestMsg -> latestMsg.delete()
+                .queue());
     }
 }
 
