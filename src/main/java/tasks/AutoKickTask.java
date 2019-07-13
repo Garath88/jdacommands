@@ -3,6 +3,8 @@ package tasks;
 import java.awt.Color;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,10 +12,11 @@ import org.slf4j.LoggerFactory;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.core.entities.User;
 import utils.GuildUtil;
-import utils.MessageUtil;
 import utils.RoleUtil;
 
 public class AutoKickTask extends Task {
@@ -44,32 +47,34 @@ public class AutoKickTask extends Task {
         jda.getTextChannels().stream()
             .filter(chan -> chan.getId().equals(WELCOME_CHANNEL_ID))
             .findFirst()
-            .ifPresent(chan -> {
+            .ifPresent(chan -> chan.getMembers().forEach(member -> {
                 Guild guild = GuildUtil.getGuild(jda);
-                Role quizRole = RoleUtil.findRole(guild, "Quiz");
-                chan.getMembers().forEach(member -> {
-                    if (member.getRoles().contains(quizRole) && member.getRoles().size() == 1) {
-                        Duration duration = Duration.between(member.getJoinDate().toInstant(), Instant.now());
-                        if (duration.toDays() >= MAX_IDLE_DAYS) {
-                            LOGGER.debug(String.format("Kicking member %s",
-                                member.getUser().getAsTag()));
-                            MessageUtil.sendMessageToUser(guild.getOwner().getUser(), String.format("Kicking member %s",
-                                member.getUser().getAsTag()));
-                    /*
-                    member.getUser().openPrivateChannel().queue(
-                        pc -> pc.sendMessage(EMBED).queue(fileSent -> pc.sendMessage(MESSAGE).queue(
-                            messageSent -> guild.getController().kick(member)
-                                .queueAfter(10, TimeUnit.SECONDS),
+                if (isNonServerMember(member, guild)) {
+                    Duration duration = Duration.between(member.getJoinDate().toInstant(), Instant.now());
+                    if (duration.toDays() >= MAX_IDLE_DAYS) {
+                        User user = member.getUser();
+                        LOGGER.debug(String.format("Kicking member %s",
+                            user.getAsTag()));
+                        user.openPrivateChannel().queue(
+                            pc -> pc.sendMessage(EMBED).queue(fileSent -> pc.sendMessage(MESSAGE).queue(
+                                messageSent -> guild.getController().kick(member)
+                                    .queueAfter(10, TimeUnit.SECONDS),
+                                fail -> {
+                                }),
+                                fail -> {
+                                }),
                             fail -> {
-                            }),
-                            fail -> {
-                            }),
-                        fail -> {
-                        });
-                     */
-                        }
+                            });
                     }
-                });
-            });
+                }
+            }));
+    }
+
+    private boolean isNonServerMember(Member member, Guild guild) {
+        Role quizRole = RoleUtil.findRole(guild, "Quiz");
+        List<Role> roles = member.getRoles();
+        return roles.contains(quizRole)
+            && roles.size() == 1
+            && !member.getUser().isBot();
     }
 }
