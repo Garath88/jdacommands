@@ -19,10 +19,10 @@ public final class TxtReader {
     }
 
     public List<String> readTxtFile() throws IOException {
-        timestamp = getLastModified();
         try (InputStream is = file.openStream();
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr)) {
+            timestamp = getLastModified();
             return readAllLines(br);
         } catch (IOException | IllegalArgumentException e) {
             throw new IOException("Failed to load configuration", e);

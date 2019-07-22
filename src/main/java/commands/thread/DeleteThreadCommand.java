@@ -1,23 +1,26 @@
 package commands.thread;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import commands.thread.database.ThreadDbInfo;
 import commands.thread.database.ThreadDbTable;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import utils.ArgumentChecker;
 import utils.CategoryUtil;
+import utils.GuildUtil;
+import utils.MessageUtil;
+import utils.StreamUtil;
 
 public class DeleteThreadCommand extends Command {
     private static final int RESPONSE_TIMEOUT_IN_SEC = 35;
@@ -28,6 +31,7 @@ public class DeleteThreadCommand extends Command {
         this.name = "deletethread";
         this.aliases = new String[] { "delthread" };
         this.help = "choose a created thread to delete.";
+        this.guildOnly = false;
         this.botPermissions = new Permission[] {
             Permission.MANAGE_CHANNEL
         };
@@ -36,7 +40,8 @@ public class DeleteThreadCommand extends Command {
     @Override
     protected void execute(CommandEvent event) {
         String args = event.getArgs();
-        ThreadDbInfo userThreadInfo = ThreadDbTable.getThreadInfoFromUser(event.getMember().getUser());
+        Member member = GuildUtil.getGuild(event.getJDA()).getMember(event.getAuthor());
+        ThreadDbInfo userThreadInfo = ThreadDbTable.getThreadInfoFromUser(member.getUser());
         if (args.isEmpty()) {
             event.reply(String.format("Listing created threads for %s: %n",
                 event.getMessage().getAuthor().getAsMention()));
@@ -59,10 +64,8 @@ public class DeleteThreadCommand extends Command {
     }
 
     private void promptUser(ThreadDbInfo userThreadInfo, CommandEvent event) {
-        event.reply("Please type in the number of the thread you want to delete.");
-        waiter.waitForEvent(MessageReceivedEvent.class,
-            e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()),
-            e -> {
+        event.reply("Please type in the number of the thread you want to delete:");
+        MessageUtil.waitForResponseInChannel(event, waiter, e -> {
                 String msgWithNumber = e.getMessage().getContentRaw();
                 try {
                     validateInput(msgWithNumber, userThreadInfo.getThreadIds().size());
@@ -73,8 +76,8 @@ public class DeleteThreadCommand extends Command {
                     event.replyWarning(ex.getMessage());
                 }
             },
-            RESPONSE_TIMEOUT_IN_SEC, TimeUnit.SECONDS, () -> event.reply(String.format("Sorry %s, you took too long.",
-                event.getMessage().getAuthor().getAsMention())));
+            RESPONSE_TIMEOUT_IN_SEC, String.format("Sorry %s, you were too slow to respond.",
+                event.getMessage().getAuthor().getAsMention()));
     }
 
     private void deleteChannel(CommandEvent event, TextChannel threadToDelete) {
@@ -109,13 +112,13 @@ public class DeleteThreadCommand extends Command {
     }
 
     private TextChannel getThreadToDeleteByName(String args, JDA jda) {
-        return CategoryUtil.getThreadCategory(jda)
-            .getTextChannels()
-            .stream()
-            .filter(thread -> thread.getName().replaceAll("[\u2004]", " ")
-                .equals(args))
-            .findFirst()
-            .orElseThrow(() -> createThreadNotFoundException(args));
+        String temp = args.replaceAll(" ", "\u2004");
+        return FinderUtil.findTextChannels(temp, GuildUtil.getGuild(jda)).stream()
+            .filter(CategoryUtil.getThreadCategory(jda)
+                .getTextChannels()::contains)
+            .reduce(StreamUtil.toOnlyElementThrowing(() ->
+                new IllegalStateException("Found more than one channel to delete!"))).
+                orElseThrow(() -> createThreadNotFoundException(args));
     }
 
     private TextChannel getThreadToDeleteByNumber(JDA jda, String number, ThreadDbInfo threadInfo) {

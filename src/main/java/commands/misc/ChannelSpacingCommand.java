@@ -11,7 +11,6 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.utils.PermissionUtil;
 import utils.ArgumentChecker;
-import utils.GuildUtil;
 
 public class ChannelSpacingCommand extends Command {
     public ChannelSpacingCommand() {
@@ -52,7 +51,7 @@ public class ChannelSpacingCommand extends Command {
         List<String> failChannelNames = new ArrayList<>();
         channels.forEach(channel -> {
             if (channel.getName().contains(from)) {
-                if (!PermissionUtil.checkPermission(channel, GuildUtil.getGuild(channel.getJDA()).getSelfMember(),
+                if (!PermissionUtil.checkPermission(channel, event.getSelfMember(),
                     Permission.MANAGE_CHANNEL)) {
                     failChannelNames.add(String.format("%s", channel.getAsMention()));
                 } else {

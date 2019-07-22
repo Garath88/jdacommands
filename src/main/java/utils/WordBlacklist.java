@@ -37,10 +37,10 @@ public final class WordBlacklist {
     private static Set<String> badWords;
 
     private WordBlacklist() {
-        loadBadWords();
+        loadBadWordsList();
     }
 
-    private static void loadBadWords() {
+    private static void loadBadWordsList() {
         Set<String> list = new HashSet<>();
         try {
             List<String> temp = TXT_READER.readTxtFile();
@@ -52,7 +52,7 @@ public final class WordBlacklist {
                 }
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to load blacklist fileURL");
+            LOGGER.error("Failed to load blacklist file");
         }
         badWords = list;
     }
@@ -70,15 +70,20 @@ public final class WordBlacklist {
     public static String searchBadWord(String input) {
         try {
             if (TXT_READER.isFileUpdated()) {
-                loadBadWords();
+                loadBadWordsList();
                 LOGGER.info("Loaded blacklist");
             }
+            return findBadWordInList(input);
         } catch (IOException e) {
-            LOGGER.error("Failed to read blacklist", e);
+            LOGGER.error("Failed to check if blacklist was updated", e);
         }
+        return "";
+    }
+
+    private static String findBadWordInList(String input) {
+        String badWord = "";
         String haystack = input.toLowerCase()
             .replaceAll("\\s+", "");
-        String badWord = "";
         for (String needle : badWords) {
             if (needle.contains("|")) {
                 String delimtedBadWord = needle.replaceAll("\\|", "");

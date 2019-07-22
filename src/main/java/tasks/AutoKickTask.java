@@ -53,8 +53,8 @@ public class AutoKickTask extends Task {
                     Duration duration = Duration.between(member.getJoinDate().toInstant(), Instant.now());
                     if (duration.toDays() >= MAX_IDLE_DAYS) {
                         User user = member.getUser();
-                        LOGGER.debug(String.format("Kicking member %s",
-                            user.getAsTag()));
+                        LOGGER.debug("Kicking member {}",
+                            user.getAsTag());
                         user.openPrivateChannel().queue(
                             pc -> pc.sendMessage(EMBED).queue(fileSent -> pc.sendMessage(MESSAGE).queue(
                                 messageSent -> guild.getController().kick(member)

@@ -14,14 +14,19 @@ import commands.quiz.QuizQuestion;
 import commands.thread.database.ThreadDbInfo;
 import commands.thread.database.ThreadDbTable;
 import commands.thread.prompt.ThreadQuestion;
+import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Channel;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Message.Attachment;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import utils.ArgumentChecker;
 import utils.CategoryUtil;
+import utils.GuildUtil;
+import utils.MessageUtil;
 import utils.RoleUtil;
 import utils.TextChannelUtil;
 import utils.WordBlacklist;
@@ -39,6 +44,7 @@ public class ThreadCommand extends Command {
         this.botPermissions = new Permission[] {
             Permission.MANAGE_CHANNEL
         };
+        this.guildOnly = false;
     }
 
     @Override
@@ -84,49 +90,52 @@ public class ThreadCommand extends Command {
             ArgumentChecker.checkIfArgsAreNotEmpty(name);
             validateName(name, event);
             String description = threadInfo.getDescription();
-            validateTopic(description, event);
-            boolean storeInDatabase = threadInfo.getStoreInDatabase();
-            createThreadChannel(event, name, description, storeInDatabase);
+            checkNoBannedWords(description, event);
+            createThreadChannel(event, threadInfo);
         } catch (IllegalArgumentException | IllegalStateException e) {
             event.replyWarning(String.format("%s %s",
                 event.getMessage().getAuthor().getAsMention(), e.getMessage()));
         }
     }
 
-    private static void validateName(String topic, CommandEvent event) {
+    public static void validateName(String topic, CommandEvent event) {
         if (StringUtils.isNotEmpty(topic) && topic.length() >= 2 && topic.length() <= 100) {
             topic = topic.replaceAll("'", "");
             Matcher matcher = SYMBOL_PATTERN.matcher(topic);
             if (matcher.find()) {
                 throw new IllegalArgumentException(
-                    String.format("Invalid name, \"%s\" can not contain special character",
+                    String.format("Invalid name. The name \"**%s**\" can not contain special characters.",
                         topic));
             }
-            validateTopic(topic, event);
+            checkNoBannedWords(topic, event);
         } else {
-            throw new IllegalArgumentException("Name can not be empty and must be between 2-100 characters");
+            throw new IllegalArgumentException("Name can not be empty and must be between 2-100 characters.");
         }
     }
 
-    private static void validateTopic(String topic, CommandEvent event) {
+    private static void checkNoBannedWords(String topic, CommandEvent event) {
         String badWord = WordBlacklist.searchBadWord(topic);
         if (StringUtils.isNotEmpty(badWord)) {
             User owner = event.getJDA().getUserById(event.getClient().getOwnerId());
             event.reply(owner.getAsMention() + " says: \nhttps://i.makeagif.com/media/2-21-2015/RDVwim.gif");
+            MessageUtil.sendMessageToUser(owner,
+                String.format("%s: %s%n%s",
+                    event.getAuthor().getAsTag(), topic, event.getAuthor().getAsMention()));
             throw new IllegalArgumentException(String.format("Found blacklisted phrase **%s** in topic name", badWord));
         }
     }
 
-    private static void createThreadChannel(CommandEvent event, String name, String description, boolean storeInDatabase) {
+    private static void createThreadChannel(CommandEvent event, ThreadInfo threadInfo) {
         net.dv8tion.jda.core.entities.Category threadCategory = CategoryUtil.getThreadCategory(event.getJDA());
+        String name = threadInfo.getName();
+        String description = threadInfo.getDescription();
         validateThreadName(threadCategory, name);
         final String channelTopic = name.replaceAll(" ", "` `");
-        event.getGuild().getController().createTextChannel(channelTopic)
+        GuildUtil.getGuild(event.getJDA()).getController().createTextChannel(channelTopic)
             .setTopic(description)
             .setNSFW(true)
             .setParent(threadCategory)
-            .queue(chan -> doTasks(chan, event, description, storeInDatabase));
-        event.reply(String.format("Successfully created new thread: **%s**", name));
+            .queue(chan -> doTasks(chan, event, description, threadInfo.getStoreInDatabase()));
     }
 
     private static void validateThreadName(net.dv8tion.jda.core.entities.Category customCategory, String topic) {
@@ -137,26 +146,27 @@ public class ThreadCommand extends Command {
     }
 
     private static void doTasks(Channel threadChannel, CommandEvent event, String topic, boolean storeInDatabase) {
-        setDenyForRole(threadChannel, event, QuizQuestion.QUIZ_ROLE, Permission.MESSAGE_READ);
-        setDenyForRole(threadChannel, event, QuizQuestion.RULES_ROLE, Permission.MESSAGE_READ);
-        setDenyForRole(threadChannel, event, event.getGuild().getPublicRole().getName(), Permission.CREATE_INSTANT_INVITE);
+        Guild guild = GuildUtil.getGuild(event.getJDA());
+        setDenyForRole(threadChannel, guild, QuizQuestion.QUIZ_ROLE, Permission.MESSAGE_READ);
+        setDenyForRole(threadChannel, guild, QuizQuestion.RULES_ROLE, Permission.MESSAGE_READ);
+        setDenyForRole(threadChannel, guild, guild.getPublicRole().getName(), Permission.CREATE_INSTANT_INVITE);
 
         TextChannel threadTextChannel = findThreadTextChannel(threadChannel, event.getJDA());
         if (storeInDatabase) {
-            ThreadDbTable.addThread(event.getMember()
-                .getUser(), threadChannel);
-            sendTopicHasBeenSetMsg(threadTextChannel, topic);
+            ThreadDbTable.addThread(event.getAuthor(), threadChannel);
+            sendTopicHasBeenSetMsg(threadTextChannel, topic, event);
             InactiveThreadChecker.startOrCancelInactivityTaskIfNotTopX(threadTextChannel);
         } else { //Sakura thread
             ThreadDbTable.addThread(event.getSelfUser(), threadChannel);
             ThreadDbTable.storePostCount(9999,
                 threadChannel.getIdLong());
         }
+        event.reply(String.format("Successfully created new thread: **%s**", threadTextChannel.getAsMention()));
     }
 
     /*TODO Refactor this*/
-    private static void setDenyForRole(Channel threadChannel, CommandEvent event, String roleName, Permission permission) {
-        Role role = RoleUtil.findRole(event.getGuild(), roleName);
+    private static void setDenyForRole(Channel threadChannel, Guild guild, String roleName, Permission permission) {
+        Role role = RoleUtil.findRole(guild, roleName);
         List<Permission> threadPermissions =
             threadChannel.getPermissionOverride(role)
                 .getDenied();
@@ -171,14 +181,23 @@ public class ThreadCommand extends Command {
         return TextChannelUtil.getChannel(threadChannel.getId(), jda);
     }
 
-    private static void sendTopicHasBeenSetMsg(TextChannel threadTextChannel, String topic) {
-        threadTextChannel.sendMessage("The topic has now been set to: " +
-            String.format("**%s**", topic))
+    private static void sendTopicHasBeenSetMsg(TextChannel threadTextChannel, String topic, CommandEvent event) {
+        User user = event.getAuthor();
+        EmbedBuilder builder = new EmbedBuilder()
+            .setAuthor(user.getAsTag(), null, user.getAvatarUrl())
+            .setDescription("The topic has now been set to: " +
+                String.format("**%s**", topic));
+        List<Attachment> attachments = event.getMessage().getAttachments();
+        if (!attachments.isEmpty()) {
+            builder.setImage(attachments.get(0).getUrl());
+        }
+        threadTextChannel.sendMessage(builder.build())
             .queue(msg -> {
                 long threadId = threadTextChannel.getIdLong();
                 ThreadDbTable.storeLatestMsgId(
                     msg.getIdLong(), threadId);
                 ThreadDbTable.storePostCount(0, threadId);
+                msg.pin().queue();
             });
     }
 }

@@ -20,10 +20,7 @@ public final class RoleUtil {
     }
 
     private static void addRole(Guild guild, User user, Role role) {
-        Member member = FinderUtil.findMembers(user.getId(), guild)
-            .stream()
-            .findFirst()
-            .orElseThrow(IllegalStateException::new);
+        Member member = guild.getMember(user);
         guild.getController().addSingleRoleToMember(member, role)
             .queue(success -> {
             }, fail -> {
@@ -47,10 +44,7 @@ public final class RoleUtil {
 
     public static void removeRole(Guild guild, User user, String roleName) {
         Role role = findRole(guild, roleName);
-        Member member = FinderUtil.findMembers(user.getId(), guild)
-            .stream()
-            .findFirst()
-            .orElseThrow(IllegalStateException::new);
+        Member member = guild.getMember(user);
         guild.getController().removeSingleRoleFromMember(member, role)
             .queue(success -> {
             }, fail -> {

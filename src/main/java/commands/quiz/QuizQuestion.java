@@ -19,7 +19,7 @@ public final class QuizQuestion {
         "- **Who do I \"fight to the death\" in order to free myself and my sister in Taimanin Asagi 1?** *(As seen in OVA 1 episodes 1-4 or VN 1)*";
     public static final String QUIZ_ROLE = "Quiz";
     public static final String RULES_ROLE = "Rules";
-    static final int QUIZ_TIMEOUT_IN_MIN = 10;
+    static final int QUIZ_TIMEOUT_IN_SECONDS = 10 * 60;
 
     private QuizQuestion() {
     }
@@ -50,8 +50,8 @@ public final class QuizQuestion {
                                                                 listen -> {
                                                                     QuizResponse quizResponse = new QuizResponse(client);
                                                                     MessageUtil.waitForResponseInDM(user, guild, waiter,
-                                                                        quizResponse, QuizQuestion.QUIZ_TIMEOUT_IN_MIN,
-                                                                        quizResponse.getRetryMessage());
+                                                                        quizResponse, QuizQuestion.QUIZ_TIMEOUT_IN_SECONDS,
+                                                                        quizResponse.getRetryMessage(), client);
                                                                 },
                                                                 fail -> {
                                                                 });

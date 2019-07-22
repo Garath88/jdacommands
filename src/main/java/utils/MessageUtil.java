@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
@@ -110,39 +111,46 @@ public final class MessageUtil {
 
     public static void waitForResponseInDM(User user, Guild guild, EventWaiter waiter,
         TriFunction<Guild, MessageReceivedEvent, EventWaiter> dmResponse,
-        int timeoutMinutes, String retryMsg) {
+        int timeoutSeconds, String retryMsg, CommandClient client) {
 
         checkResponseInDM(e -> dmResponse.apply(guild, e, waiter),
-            waiter, user, timeoutMinutes, retryMsg);
+            waiter, user, timeoutSeconds, retryMsg, client);
     }
 
     private static void checkResponseInDM(Consumer<MessageReceivedEvent> dmResponse,
-        EventWaiter waiter, User user, int timeoutMinutes,
-        String retryMsg) {
+        EventWaiter waiter, User user, int timeoutSeconds,
+        String retryMsg, CommandClient client) {
         waiter.waitForEvent(MessageReceivedEvent.class,
-            e -> e.getAuthor().equals(user) && e.getChannel().getType().equals(ChannelType.PRIVATE),
-            dmResponse, timeoutMinutes, TimeUnit.MINUTES, () -> MessageUtil.sendMessageToUser(user,
+            e -> e.getAuthor().equals(user) && e.getChannel().getType().equals(ChannelType.PRIVATE)
+                && doesNotContainCommand(e, client.getCommandArguments()),
+            dmResponse, timeoutSeconds, TimeUnit.SECONDS, () -> MessageUtil.sendMessageToUser(user,
                 String.format("- Sorry you were too slow to respond %s :frowning: \n"
                     + retryMsg, user.getAsMention())), user);
     }
 
     public static void waitForResponseInChannel(CommandEvent event, EventWaiter waiter,
         Consumer<MessageReceivedEvent> channelResponse,
-        int timeoutMinutes, String retryMsg) {
+        int timeoutSeconds, String retryMsg) {
         User user = event.getAuthor();
 
         checkResponseInChannel(channelResponse,
-            waiter, user, timeoutMinutes, retryMsg, event);
+            waiter, user, timeoutSeconds, retryMsg, event);
     }
 
     private static void checkResponseInChannel(Consumer<MessageReceivedEvent> channelResponse,
-        EventWaiter waiter, User user, int timeoutMinutes,
+        EventWaiter waiter, User user, int timeoutSeconds,
         String retryMsg, CommandEvent event) {
         waiter.waitForEvent(MessageReceivedEvent.class,
-            e -> e.getAuthor().equals(user) && e.getChannel().getId().equals(event.getChannel().getId()),
-            channelResponse, timeoutMinutes, TimeUnit.MINUTES, () -> event.reply(
+            e -> e.getAuthor().equals(user) && e.getChannel().getId().equals(event.getChannel().getId())
+                && doesNotContainCommand(e, event.getClient().getCommandArguments()),
+            channelResponse, timeoutSeconds, TimeUnit.SECONDS, () -> event.reply(
                 String.format("- Sorry you were too slow to respond %s :frowning: \n"
                     + retryMsg, user.getAsMention())), user);
+    }
+
+    private static boolean doesNotContainCommand(MessageReceivedEvent event, List<String> commandArguments) {
+        String[] message = event.getMessage().getContentRaw().toLowerCase().split("\\s");
+        return !commandArguments.contains(message[0]);
     }
 
     public static String addMentionsAndEmojis(String message, JDA jda) {
