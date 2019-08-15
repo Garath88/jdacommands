@@ -38,7 +38,6 @@ public class MemberCommand extends Command {
                         quizResponse.getRetryMessage(), client);
                 } else {
                     quizResponse.checkResponse(response, guild, event.getAuthor(), waiter);
-
                 }
             }
         } catch (IllegalArgumentException e) {

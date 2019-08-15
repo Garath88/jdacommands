@@ -7,11 +7,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tasks.TaskListContainer;
-import utils.CategoryUtil;
-
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.TextChannel;
+import tasks.TaskListContainer;
+import utils.CategoryUtil;
 
 public final class InactiveThreadChecker {
     private static final Logger LOGGER = LoggerFactory.getLogger(InactiveThreadChecker.class);
@@ -35,6 +34,7 @@ public final class InactiveThreadChecker {
         if (lowPosChannel && notAlreadyRunning(textChannel.getId())) {
             taskListContainer.addTask(new InactiveThreadCheckTask(textChannel));
             taskListContainer.scheduleTasks();
+            LOGGER.debug("Scheduling inactivity task for {}", textChannel.getName());
         } else if (!lowPosChannel) {
             cancelInactivityTask(textChannel);
         }
@@ -53,13 +53,10 @@ public final class InactiveThreadChecker {
     private static void cancelInactivityTask(TextChannel textChannel) {
         Optional<InactiveThreadCheckTask> task = getThreadTask(textChannel.getIdLong());
         //*TODO: REMOVE EXTRA LOGGING:
-        if (task.isPresent()) {
-            String debugInfo = String.format("Canceling inactivity task for %s",
-                textChannel.getName());
-            LOGGER.info(debugInfo);
-        }
-        task.ifPresent(inactiveThreadCheckTask ->
-            taskListContainer.cancelTask(inactiveThreadCheckTask));
+        task.ifPresent(inactiveThreadCheckTask -> {
+            taskListContainer.cancelTask(inactiveThreadCheckTask);
+            LOGGER.debug("Canceling inactivity task for {}", textChannel.getName());
+        });
     }
 
     public static void cancelTaskIfDeleted(TextChannel thread) {
