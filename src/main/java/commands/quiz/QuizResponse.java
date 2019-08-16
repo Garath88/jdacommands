@@ -33,6 +33,7 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
     void checkResponse(String response, Guild guild, User user, EventWaiter waiter) {
         JDA jda = guild.getJDA();
         if (response.equalsIgnoreCase("kyousuke") ||
+            response.equalsIgnoreCase("kyosuke") ||
             response.equalsIgnoreCase("kyousuke sawaki") ||
             response.equalsIgnoreCase("sawaki kyousuke") ||
             response.equalsIgnoreCase("kyosuke sawaki") ||
