@@ -49,7 +49,7 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
                 + retryMessage);
         } else if ("sakura".equals(response) || "sakura igawa".equals(response) || "igawa sakura".equals(response)) {
             MessageUtil.sendMessageToUser(user,
-                "- Mee?! Why would I fight myself? You silly goose! :smile:\n"
+                "- Yes? Wait.. Meee?!! You are such a silly goose! :smile:\n"
                     + retryMessage);
         } else if (response.contains("?")) {
             MessageUtil.sendMessageToUser(user,
