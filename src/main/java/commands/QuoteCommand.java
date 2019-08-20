@@ -41,7 +41,7 @@ public final class QuoteCommand extends Command {
                 if (chan.canTalk()) {
                     chan.getMessageById(args).queue(message -> {
                         if (!message.getContentDisplay().isEmpty() || !message.getAttachments().isEmpty()) {
-                            event.reply(String.format("``%s quoted:``",
+                            event.reply(String.format("*%s quoted:*",
                                 event.getAuthor().getAsTag()),
                                 createEmbed(message));
                             event.getMessage().delete().queue();
