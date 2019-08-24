@@ -26,32 +26,34 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
     @Override
     public void apply(Guild guild, MessageReceivedEvent e, EventWaiter waiter) {
         User user = e.getAuthor();
-        String response = e.getMessage().getContentRaw().toLowerCase();
+        String response = e.getMessage().getContentRaw();
         checkResponse(response, guild, user, waiter);
     }
 
-    void checkResponse(String response, Guild guild, User user, EventWaiter waiter) {
+    void checkResponse(final String response, Guild guild, User user, EventWaiter waiter) {
+        String answer = response;
+        answer = answer.replace(".", "");
         JDA jda = guild.getJDA();
-        if (response.equalsIgnoreCase("kyousuke") ||
-            response.equalsIgnoreCase("kyosuke") ||
-            response.equalsIgnoreCase("kyousuke sawaki") ||
-            response.equalsIgnoreCase("sawaki kyousuke") ||
-            response.equalsIgnoreCase("kyosuke sawaki") ||
-            response.equalsIgnoreCase("sawaki kyosuke")
+        if (answer.equalsIgnoreCase("kyousuke") ||
+            answer.equalsIgnoreCase("kyosuke") ||
+            answer.equalsIgnoreCase("kyousuke sawaki") ||
+            answer.equalsIgnoreCase("sawaki kyousuke") ||
+            answer.equalsIgnoreCase("kyosuke sawaki") ||
+            answer.equalsIgnoreCase("sawaki kyosuke")
         ) {
             MessageUtil.sendMessageToUser(user, EmojiUtil.getCustomEmoji(jda, "sakura"));
             MessageUtil.sendMessageToUser(user, "- Correct");
             RoleUtil.addRole(guild, user, QuizQuestion.RULES_ROLE);
             RoleUtil.removeRole(guild, user, QuizQuestion.QUIZ_ROLE);
             RulesMessage.perform(user, guild, waiter, client);
-        } else if (response.equalsIgnoreCase("sawaki")) {
+        } else if (answer.equalsIgnoreCase("sawaki")) {
             MessageUtil.sendMessageToUser(user, "Sawaki? Sawaki who?? \n"
                 + retryMessage);
-        } else if ("sakura".equals(response) || "sakura igawa".equals(response) || "igawa sakura".equals(response)) {
+        } else if ("sakura".equals(answer) || "sakura igawa".equals(answer) || "igawa sakura".equals(answer)) {
             MessageUtil.sendMessageToUser(user,
                 "- Yes? Wait.. Meee?!! You are such a silly goose! :smile:\n"
                     + retryMessage);
-        } else if (response.contains("?")) {
+        } else if (answer.contains("?")) {
             MessageUtil.sendMessageToUser(user,
                 "- It's rude to  answer a question with a question! \n"
                     + retryMessage);
