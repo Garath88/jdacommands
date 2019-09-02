@@ -55,7 +55,7 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
                     + retryMessage);
         } else if (answer.contains("?")) {
             MessageUtil.sendMessageToUser(user,
-                "- It's rude to  answer a question with a question! \n"
+                "- It's rude to answer a question with a question! \n"
                     + retryMessage);
             MessageUtil.sendMessageToUser(guild.getOwner().getUser(),
                 String.format("%s: %s%n%s",

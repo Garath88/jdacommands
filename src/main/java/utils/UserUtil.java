@@ -43,6 +43,14 @@ public final class UserUtil {
             .noneMatch(role -> Permissions.MODERATOR.getValues().contains(role.getName()));
     }
 
+    public static boolean isNotModAdminOrBot(User user, JDA jda) {
+        if (user.isBot()) {
+            return false;
+        }
+        return GuildUtil.getGuild(jda).getMember(user).getRoles().stream()
+            .noneMatch(role -> Permissions.MODERATOR.getValues().contains(role.getName()));
+    }
+
     public static String validateAndGetUser(String user, CommandEvent event) {
         if ("all".equalsIgnoreCase(user.toLowerCase())) {
             return "all";

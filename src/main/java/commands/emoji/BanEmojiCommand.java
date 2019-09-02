@@ -78,8 +78,7 @@ public final class BanEmojiCommand extends Command {
     }
 
     public static void deleteReactionWithBlacklistedEmojis(User author, MessageReaction messageReaction) {
-        String userId = author.getId();
-        if (UserUtil.isNotModAdminOrBot(userId, messageReaction.getJDA())) {
+        if (UserUtil.isNotModAdminOrBot(author, messageReaction.getJDA())) {
             removeBlacklistedEmojiForId(author, messageReaction);
         }
     }
