@@ -32,10 +32,11 @@ public final class UserUtil {
     }
 
     public static boolean isNotModAdminOrBot(String userId, JDA jda) {
-        userId = userId.replaceAll("\\s+", "");
-        User user = FinderUtil.findUsers(userId, jda).stream()
+        final String id = userId.replaceAll("\\s+", "");
+        User user = FinderUtil.findUsers(id, jda).stream()
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No user with that ID found!"));
+            .orElseThrow(() -> new IllegalArgumentException(String.format("No user with ID %s found!",
+                userId)));
         if (user.isBot()) {
             return false;
         }
