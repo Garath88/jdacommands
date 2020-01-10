@@ -60,12 +60,11 @@ public final class ThreadDbTable {
                     channelIds.add(result.getLong("id"));
                 }
                 result.close();
-                return channelIds;
             } catch (SQLException e) {
                 LOGGER.error(QUERY_RESULT_ERROR, e);
             }
         }
-        return Collections.emptyList();
+        return channelIds;
     }
 
     public static ThreadDbInfo getThreadInfoFromUser(User user) {
@@ -159,7 +158,6 @@ public final class ThreadDbTable {
                     latestMessageId = result.getLong("latest_message_id");
                 }
                 result.close();
-                return latestMessageId;
             } catch (SQLException e) {
                 LOGGER.error(QUERY_RESULT_ERROR, e);
             }
@@ -184,11 +182,12 @@ public final class ThreadDbTable {
                     postCount = result.getInt("post_count");
                 }
                 result.close();
-                return postCount;
             } catch (SQLException e) {
                 LOGGER.error(QUERY_RESULT_ERROR, e);
             }
         }
+        LOGGER.trace("Post count for thread {} is {}",
+            threadId, postCount);
         return postCount;
     }
 

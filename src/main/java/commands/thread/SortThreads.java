@@ -10,17 +10,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import commands.thread.database.ThreadDbTable;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageDeleteEvent;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import utils.CategoryUtil;
-import utils.GuildUtil;
-
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Category;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.events.Event;
+import net.dv8tion.jda.core.events.message.MessageDeleteEvent;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import utils.CategoryUtil;
+import utils.GuildUtil;
 
 public final class SortThreads {
     private static final Logger LOGGER = LoggerFactory.getLogger(SortThreads.class);
@@ -53,33 +52,14 @@ public final class SortThreads {
 
     private static void countAndSortMessages(TextChannel thread, final long messageId, int amountOfThreads) {
         thread.getMessageById(messageId).queue(
-            latestMsg -> countSortAndDoInactivityTask(thread, latestMsg, amountOfThreads)
+            latestMsg -> {
+                int initialPostCount = ThreadDbTable.getPostCount(thread);
+                countSortAndDoInactivityTask(initialPostCount, latestMsg, thread, amountOfThreads);
+            }
         );
     }
 
-    private static void countSortAndDoInactivityTask(TextChannel thread,
-        Message latestMessage, int amountOfThreads) {
-
-        boolean isLastThread = checkIfLastThread(amountOfThreads);
-        countAndStorePostCount(latestMessage, thread);
-        if (isLastThread) {
-            JDA jda = thread.getJDA();
-            List<TextChannel> allThreads = CategoryUtil.getThreadCategory(jda)
-                .getTextChannels();
-            sortAllThreadsByPostCountAndStartOrCancelInactivityTask(thread.getJDA(), allThreads);
-        }
-    }
-
-    private static boolean checkIfLastThread(int amountOfThreads) {
-        if (threadCounter.incrementAndGet() == amountOfThreads) {
-            threadCounter.set(0);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private static void countAndStorePostCount(Message latestMsg, TextChannel thread) {
+    private static void countSortAndDoInactivityTask(int postCount, Message latestMsg, TextChannel thread, int amountOfThreads) {
         try {
             thread.getHistoryAfter(latestMsg, MAX_HISTORY_LIMIT).queue(
                 history -> {
@@ -87,15 +67,22 @@ public final class SortThreads {
                     List<Message> messages = new ArrayList<>(history.getRetrievedHistory());
                     if (!messages.isEmpty()) {
                         messages.add(latestMsg);
-                        int postCount = ThreadDbTable.getPostCount(thread);
-                        postCount += countUniqueNewMessages(messages);
-                        if (postCount > 0) {
-                            ThreadDbTable.storePostCount(postCount, threadId);
+                        int counter = postCount;
+                        counter += countUniqueNewMessages(messages);
+                        if (counter > 0) {
+                            ThreadDbTable.storePostCount(counter, threadId);
                         }
-                        countAndStorePostCount(messages.get(0), thread);
+                        countSortAndDoInactivityTask(counter, messages.get(0), thread, amountOfThreads);
                     } else {
                         ThreadDbTable.storeLatestMsgId(
                             latestMsg.getIdLong(), threadId);
+                    }
+                    LOGGER.debug("Post count for thread {} is {}",
+                        threadId, postCount);
+                    boolean isLastThread = checkIfLastThread(amountOfThreads);
+                    if (isLastThread) {
+                        JDA jda = thread.getJDA();
+                        sortAllThreadsByPostCountAndStartOrCancelInactivityTask(jda);
                     }
                 });
         } catch (Exception e) {
@@ -112,6 +99,15 @@ public final class SortThreads {
             postCount = countUniqueMessages(iter);
         }
         return postCount;
+    }
+
+    private static boolean checkIfLastThread(int amountOfThreads) {
+        if (threadCounter.incrementAndGet() >= amountOfThreads) {
+            threadCounter.set(0);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private static int countUniqueMessages(ListIterator<Message> iter) {
@@ -134,17 +130,18 @@ public final class SortThreads {
         return postCount;
     }
 
-    private static void sortAllThreadsByPostCountAndStartOrCancelInactivityTask(
-        JDA jda, List<TextChannel> allThreads) {
+    static void sortAllThreadsByPostCountAndStartOrCancelInactivityTask(JDA jda) {
+        Category threadCategory = CategoryUtil.getThreadCategory(jda);
+        List<TextChannel> allThreads = threadCategory
+            .getTextChannels();
 
-        Category category = CategoryUtil.getThreadCategory(jda);
         if (!allThreads.isEmpty()) {
             GuildUtil.getGuild(jda).getController()
-                .modifyTextChannelPositions(category)
+                .modifyTextChannelPositions(threadCategory)
                 .sortOrder(Comparator.comparingInt(ThreadDbTable::getPostCount)
                     .reversed())
                 .queue(success ->
-                    InactiveThreadChecker.startOrCancelInactivityTaskIfNotTopX(jda));
+                    InactiveThreadChecker.startOrCancelInactivityTaskIfNotTopX(allThreads));
         }
     }
 

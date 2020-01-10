@@ -8,10 +8,9 @@ import java.util.stream.Collectors;
 
 import org.slf4j.LoggerFactory;
 
-import tasks.Task;
-
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
+import tasks.Task;
 
 public final class InactiveThreadCheckTask extends Task {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(InactiveThreadCheckTask.class);
@@ -47,26 +46,32 @@ public final class InactiveThreadCheckTask extends Task {
         String debug = String.format("Thread: %s - timeleft: %s",
             thread.getName(), timeLeft);
         LOGGER.debug(debug);
-        if (timeLeft <= 0) {
-            if (!hasWarned) {
-                deleteTime = OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(EXPIRE_AFTER_MIN);
-                sendInactivityMsg(EXPIRE_AFTER_MIN);
-                scheduleDelete(WARNING_BEFORE_MIN, 1, deleteTime);
+        try {
+            if (timeLeft <= 0) {
+                if (!hasWarned) {
+                    deleteTime = OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(EXPIRE_AFTER_MIN);
+                    sendInactivityMsg(EXPIRE_AFTER_MIN);
+                    scheduleDelete(WARNING_BEFORE_MIN, 1, deleteTime);
+                } else {
+                    deleteChannel();
+                }
+            } else if (timeLeft <= FINAL_WARNING_BEFORE_MIN) {
+                sendInactivityMsg(timeLeft);
+                scheduleDelete(timeLeft, 0, deleteTime);
+            } else if (timeLeft <= WARNING_BEFORE_MIN) {
+                sendInactivityMsg(timeLeft);
+                scheduleDelete(timeLeft, FINAL_WARNING_BEFORE_MIN, deleteTime);
             } else {
-                deleteChannel();
+                scheduleDelete(timeLeft, WARNING_BEFORE_MIN, deleteTime);
             }
-        } else if (timeLeft <= FINAL_WARNING_BEFORE_MIN) {
-            sendInactivityMsg(getExpirationTimeInMinutes());
-            scheduleDelete(timeLeft, 0, deleteTime);
-        } else if (timeLeft <= WARNING_BEFORE_MIN) {
-            sendInactivityMsg(getExpirationTimeInMinutes());
-            scheduleDelete(timeLeft, FINAL_WARNING_BEFORE_MIN, deleteTime);
-        } else {
-            scheduleDelete(timeLeft, WARNING_BEFORE_MIN, deleteTime);
+        } catch (Exception e) {
+            LOGGER.debug(e.getMessage(), e);
         }
     }
 
     private void sendInactivityMsg(long expirationTime) {
+        LOGGER.debug("Sending inactivity message to channel {}",
+            thread.getName());
         String message = createInactivityMessage(expirationTime);
         thread.sendMessage(message)
             .queue();

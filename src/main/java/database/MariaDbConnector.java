@@ -28,7 +28,8 @@ public final class MariaDbConnector {
             try (Connection conn = DriverManager.getConnection(
                 config.getDbUrl(), config.getDbUser(), config.getDbPass());
                 PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+                ResultSet rs = ps.executeQuery()
+            ) {
                 if (!rs.isBeforeFirst()) {
                     return null;
                 } else {

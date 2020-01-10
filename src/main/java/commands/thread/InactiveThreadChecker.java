@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.TextChannel;
 import tasks.TaskListContainer;
 import utils.CategoryUtil;
@@ -24,8 +23,7 @@ public final class InactiveThreadChecker {
         return taskListContainer;
     }
 
-    public static void startOrCancelInactivityTaskIfNotTopX(JDA jda) {
-        List<TextChannel> allThreads = CategoryUtil.getThreadCategory(jda).getTextChannels();
+    public static void startOrCancelInactivityTaskIfNotTopX(List<TextChannel> allThreads) {
         allThreads.forEach(InactiveThreadChecker::startOrCancelInactivityTaskIfNotTopX);
     }
 
