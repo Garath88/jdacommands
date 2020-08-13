@@ -8,7 +8,7 @@ public final class MediaPatterns {
     private static final Pattern URL_TWITTER_PATTERN =
         Pattern.compile("http(s?)://pbs(-[0-9]+)?.twimg.com/media/[^./]+.(jpg|png)((:[a-z]+)?)$");
     private static final Pattern URL_TWITTER_STATUS_PATTERN =
-        Pattern.compile("http(s?)://(www\\.)?twitter\\.com/([A-Za-z0-9-_.]+/status/|statuses/|i/web/status/)([0-9?s=]+)$");
+        Pattern.compile("http(s?)://(www\\.)?twitter\\.com/([A-Za-z0-9-_.]+/status/|statuses/|i/web/status/)([0-9?s=]+)(/photo/1)?$");
     private static final Pattern URL_FC2_PATTERN =
         Pattern.compile("http(s?)://.*fc2.*");
     private static final Pattern URL_BOORU_PATTERN =

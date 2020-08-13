@@ -10,6 +10,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
+import commands.Permissions;
 import commands.quiz.QuizQuestion;
 import commands.thread.database.ThreadDbInfo;
 import commands.thread.database.ThreadDbTable;
@@ -67,7 +68,9 @@ public class ThreadCommand extends Command {
     }
 
     private boolean isAtMaxThreadsForUser(CommandEvent event) {
-        if (RoleUtil.getMemberRoles(event).isEmpty()) {
+        if (RoleUtil.getMemberRoles(event).stream()
+            .map(Role::getName)
+            .noneMatch(Permissions.FAN.getValues()::contains)) {
             ThreadDbInfo threadInfo = ThreadDbTable.getThreadInfoFromUser(event.getAuthor());
             return threadInfo.getThreadIds().size() >= LURKER_MAX_THREAD_LIMIT;
         }
