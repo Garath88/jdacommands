@@ -32,18 +32,15 @@ public final class QuizQuestion {
             user.openPrivateChannel()
                 .queue(PrivateChannelWrapper.userIsInGuild(pc ->
                     pc.sendMessage("*Yohoo~* it's Sakura! :heart:")
-                        .queue(PrivateChannelWrapper.userIsInGuild(msg2 ->
-                            {
+                        .queue(PrivateChannelWrapper.userIsInGuild(msg2 -> {
                                 pc.sendTyping().queue();
                                 pc.sendMessage("- In order to gain access to this lewd server you must first answer **one** simple **question!**")
-                                    .queueAfter(3, TimeUnit.SECONDS, PrivateChannelWrapper.userIsInGuild(msg3 ->
-                                    {
+                                    .queueAfter(3, TimeUnit.SECONDS, PrivateChannelWrapper.userIsInGuild(msg3 -> {
                                         pc.sendTyping().queue();
                                         pc.sendMessage("- Ready? ")
                                             .queueAfter(3, TimeUnit.SECONDS, PrivateChannelWrapper.userIsInGuild(msg4 ->
                                                 msg4.editMessage("- Ready? Great, let's start!")
-                                                    .queueAfter(1, TimeUnit.SECONDS, PrivateChannelWrapper.userIsInGuild(msg5 ->
-                                                    {
+                                                    .queueAfter(1, TimeUnit.SECONDS, PrivateChannelWrapper.userIsInGuild(msg5 -> {
                                                         pc.sendTyping().queue();
                                                         pc.sendMessage(QUIZ_QUESTION)
                                                             .queueAfter(3, TimeUnit.SECONDS,

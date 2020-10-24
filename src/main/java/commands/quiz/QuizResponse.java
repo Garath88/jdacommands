@@ -13,6 +13,7 @@ import utils.RoleUtil;
 import utils.TriFunction;
 
 public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, EventWaiter> {
+    private static final int REPLY_DELAY = 1000;
     private CommandClient client;
     private final String retryMessage;
 
@@ -24,39 +25,38 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
     }
 
     @Override
-    public void apply(Guild guild, MessageReceivedEvent e, EventWaiter waiter) {
-        User user = e.getAuthor();
-        String response = e.getMessage().getContentRaw();
-        checkResponse(response, guild, user, waiter);
+    public void apply(Guild guild, MessageReceivedEvent event, EventWaiter waiter) {
+        String response = event.getMessage().getContentRaw();
+        checkResponse(response, guild, event, waiter);
     }
 
-    void checkResponse(final String response, Guild guild, User user, EventWaiter waiter) {
-        String answer = response;
-        answer = answer.replace(".", "");
+    void checkResponse(final String response, Guild guild, MessageReceivedEvent event, EventWaiter waiter) {
+        User user = event.getAuthor();
+        String answer = response.toLowerCase().replace(".", "");
         JDA jda = guild.getJDA();
-        if (answer.equalsIgnoreCase("kyousuke") ||
-            answer.equalsIgnoreCase("kyosuke") ||
-            answer.equalsIgnoreCase("kyousuke sawaki") ||
-            answer.equalsIgnoreCase("sawaki kyousuke") ||
-            answer.equalsIgnoreCase("kyosuke sawaki") ||
-            answer.equalsIgnoreCase("sawaki kyosuke")
+        if (answer.equals("kyousuke") ||
+            answer.equals("kyosuke") ||
+            answer.equals("kyousuke sawaki") ||
+            answer.equals("sawaki kyousuke") ||
+            answer.equals("kyosuke sawaki") ||
+            answer.equals("sawaki kyosuke")
         ) {
             MessageUtil.sendMessageToUser(user, EmojiUtil.getCustomEmoji(jda, "sakura"));
-            MessageUtil.sendMessageToUser(user, "- Correct");
+            MessageUtil.sendMessageToUser(user, "- Correct", REPLY_DELAY);
             RoleUtil.addRole(guild, user, QuizQuestion.RULES_ROLE);
             RoleUtil.removeRole(guild, user, QuizQuestion.QUIZ_ROLE);
-            RulesMessage.perform(user, guild, waiter, client);
-        } else if (answer.equalsIgnoreCase("sawaki")) {
-            MessageUtil.sendMessageToUser(user, "Sawaki? Sawaki who?? \n"
-                + retryMessage);
+            HelpMessage.perform(user, guild, waiter, client, event);
+        } else if (answer.equals("sawaki")) {
+            MessageUtil.sendMessageToUser(user, "- Sawaki? Sawaki who?? \n"
+                + retryMessage, REPLY_DELAY);
         } else if ("sakura".equals(answer) || "sakura igawa".equals(answer) || "igawa sakura".equals(answer)) {
             MessageUtil.sendMessageToUser(user,
                 "- Yes? Wait.. Meee?!! You are such a silly goose! :smile:\n"
-                    + retryMessage);
+                    + retryMessage, REPLY_DELAY);
         } else if (answer.contains("?")) {
             MessageUtil.sendMessageToUser(user,
                 "- It's rude to answer a question with a question! \n"
-                    + retryMessage);
+                    + retryMessage, REPLY_DELAY);
             MessageUtil.sendMessageToUser(guild.getOwner().getUser(),
                 String.format("%s: %s%n%s",
                     user.getAsTag(), response, user.getAsMention()));

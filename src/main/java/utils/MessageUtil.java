@@ -60,10 +60,12 @@ public final class MessageUtil {
                 MessageUtil.sendMessageToChannel(pc, message)));
     }
 
-    public static void sendMessageToUser(User user, String message) {
+    public static void sendMessageToUser(User user, String message, int delayInMillis) {
         user.openPrivateChannel()
-            .queue(PrivateChannelWrapper.userIsInGuild(pc ->
-                MessageUtil.sendMessageToChannel(message, pc)));
+            .queue(PrivateChannelWrapper.userIsInGuild(pc -> {
+                pc.sendTyping().queue();
+                MessageUtil.sendMessageToChannel(message, pc, delayInMillis);
+            }));
     }
 
     private static void sendMessageToChannel(MessageChannel channel, Message message) {
@@ -94,6 +96,21 @@ public final class MessageUtil {
         if (!message.isEmpty()) {
             channel.sendMessage(message)
                 .queue(success -> {
+                }, fail -> {
+                });
+        }
+    }
+
+    public static void sendMessageToUser(User user, String message) {
+        user.openPrivateChannel()
+            .queue(PrivateChannelWrapper.userIsInGuild(pc ->
+                MessageUtil.sendMessageToChannel(message, pc)));
+    }
+
+    private static void sendMessageToChannel(String message, MessageChannel channel, int delayInMillis) {
+        if (!message.isEmpty()) {
+            channel.sendMessage(message)
+                .queueAfter(delayInMillis, TimeUnit.MILLISECONDS, success -> {
                 }, fail -> {
                 });
         }

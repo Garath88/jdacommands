@@ -52,10 +52,10 @@ public class ThreadCommand extends Command {
     protected void execute(CommandEvent event) {
         if (CategoryUtil.getThreadCategory(event.getJDA())
             .getTextChannels().size() >= MAX_AMOUNT_OF_THREADS) {
-            sendErrorMsg("Sorry maximum amount of threads reached!", event);
+            sendErrorMsg("Sorry maximum amount of threads reached! Try again later.", event);
         } else if (isAtMaxThreadsForUser(event)) {
             sendErrorMsg(String.format(
-                "Sorry you can only make %s thread for your current role.",
+                "Sorry you can only make %s thread(s) for your current role.",
                 LURKER_MAX_THREAD_LIMIT), event);
         } else {
             addNewThread(event);

@@ -78,7 +78,7 @@ public final class SortThreads {
                             latestMsg.getIdLong(), threadId);
                     }
                     LOGGER.debug("Post count for thread {} is {}",
-                        threadId, postCount);
+                        thread.getName(), postCount);
                     boolean isLastThread = checkIfLastThread(amountOfThreads);
                     if (isLastThread) {
                         JDA jda = thread.getJDA();

@@ -31,13 +31,13 @@ public class MemberCommand extends Command {
                 QuizResponse quizResponse = new QuizResponse(event.getClient());
                 String response = event.getArgs();
                 if (response.isEmpty()) {
-                    event.reply(QuizQuestion.QUIZ_QUESTION);
+                    event.reply(QuizQuestion.QUIZ_QUESTION, 500);
                     CommandClient client = event.getClient();
                     MessageUtil.waitForResponseInDM(event.getAuthor(), guild, waiter,
                         new QuizResponse(client), QuizQuestion.QUIZ_TIMEOUT_IN_SECONDS,
                         quizResponse.getRetryMessage(), client);
                 } else {
-                    quizResponse.checkResponse(response, guild, event.getAuthor(), waiter);
+                    quizResponse.checkResponse(response, guild, event.getEvent(), waiter);
                 }
             }
         } catch (IllegalArgumentException e) {
