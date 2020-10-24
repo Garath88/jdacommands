@@ -32,14 +32,12 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
 
     void checkResponse(final String response, Guild guild, MessageReceivedEvent event, EventWaiter waiter) {
         User user = event.getAuthor();
-        String answer = response.toLowerCase().replace(".", "");
+        String answer = response.toLowerCase()
+            .replace(".", "")
+            .trim();
         JDA jda = guild.getJDA();
-        if (answer.equals("kyousuke") ||
-            answer.equals("kyosuke") ||
-            answer.equals("kyousuke sawaki") ||
-            answer.equals("sawaki kyousuke") ||
-            answer.equals("kyosuke sawaki") ||
-            answer.equals("sawaki kyosuke")
+        if (answer.equals("chaos arena") ||
+            answer.equals("the chaos arena")
         ) {
             MessageUtil.sendMessageToUser(user, EmojiUtil.getCustomEmoji(jda, "sakura"));
             MessageUtil.sendMessageToUser(user, "- Correct", REPLY_DELAY);

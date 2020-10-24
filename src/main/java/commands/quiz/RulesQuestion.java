@@ -19,13 +19,16 @@ final class RulesQuestion {
     static void perform(int delay, User user, Guild guild, EventWaiter waiter, CommandClient client) {
         user.openPrivateChannel()
             .queueAfter(delay, TimeUnit.SECONDS, PrivateChannelWrapper.userIsInGuild(pc ->
-                    pc.sendMessage("- Have you read the rules? **(yes/no)**")
+                pc.sendTyping().queueAfter(500, TimeUnit.MILLISECONDS,
+                    msg -> pc.sendMessage("- Have you read the rules? **(yes/no)**")
                         .queue(listen -> MessageUtil.waitForResponseInDM(user, guild, waiter,
                             new RulesResponse(client), RULES_TIMEOUT_IN_SECONDS,
                             new QuizResponse(client).getRetryMessage(), client),
                             fail -> {
-                            })),
-                fail -> {
-                });
+                            }),
+                    fail -> {
+                    })
+            ), fail -> {
+            });
     }
 }

@@ -19,10 +19,16 @@ class RulesMessage {
         user.openPrivateChannel()
             .queueAfter(15, TimeUnit.SECONDS,
                 PrivateChannelWrapper.userIsInGuild(pc -> pc.sendMessage(
-                    String.format("- OH! I almost forgot!%n- You should go and read the rules in %s!",
-                        rulesChannel))
-                    .queue(msg2 -> RulesQuestion.perform(TIME_TO_READ_RULES_IN_SEC,
-                        user, guild, waiter, client),
+                    "- OH! I almost forgot!")
+                    .queue(msg2 -> {
+                            pc.sendTyping().queue();
+                            pc.sendMessage(String.format("- You should read the rules in %s", rulesChannel))
+                                .queueAfter(1000, TimeUnit.MILLISECONDS,
+                                    msg3 -> RulesQuestion.perform(TIME_TO_READ_RULES_IN_SEC,
+                                        user, guild, waiter, client),
+                                    fail -> {
+                                    });
+                        },
                         fail -> {
                         })),
                 fail -> {
