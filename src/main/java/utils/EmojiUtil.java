@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.ISnowflake;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ISnowflake;
 
 public final class EmojiUtil {
     private static final Pattern EMOJI_PATTERN = Pattern.compile(":([A-z]*?):");

@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.LoggerFactory;
 
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import tasks.Task;
 
 public final class InactiveThreadCheckTask extends Task {
@@ -104,7 +104,7 @@ public final class InactiveThreadCheckTask extends Task {
                     ChronoUnit.MINUTES);
             }
         } else {
-            return currentTime.until(thread.getCreationTime()
+            return currentTime.until(thread.getTimeCreated()
                     .plusMinutes(NO_CONTENT_EXPIRE_AFTER_MIN),
                 ChronoUnit.MINUTES);
         }
@@ -113,7 +113,7 @@ public final class InactiveThreadCheckTask extends Task {
     private OffsetDateTime getLatestMessageTime(List<Message> latestMessages) {
         Message latestUserMsg = getLatestUserMessage(latestMessages);
         if (latestUserMsg != null) {
-            return latestUserMsg.getCreationTime();
+            return latestUserMsg.getTimeCreated();
         }
         return null;
     }

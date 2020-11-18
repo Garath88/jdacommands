@@ -5,10 +5,10 @@ import java.util.List;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 public final class RoleUtil {
     private RoleUtil() {
@@ -21,10 +21,12 @@ public final class RoleUtil {
 
     private static void addRole(Guild guild, User user, Role role) {
         Member member = guild.getMember(user);
-        guild.getController().addSingleRoleToMember(member, role)
-            .queue(success -> {
-            }, fail -> {
-            });
+        if (member != null) {
+            guild.addRoleToMember(member, role)
+                .queue(success -> {
+                }, fail -> {
+                });
+        }
     }
 
     public static Role findRole(Guild guild, String roleName) {
@@ -45,10 +47,12 @@ public final class RoleUtil {
     public static void removeRole(Guild guild, User user, String roleName) {
         Role role = findRole(guild, roleName);
         Member member = guild.getMember(user);
-        guild.getController().removeSingleRoleFromMember(member, role)
-            .queue(success -> {
-            }, fail -> {
-            });
+        if (member != null) {
+            guild.removeRoleFromMember(member, role)
+                .queue(success -> {
+                }, fail -> {
+                });
+        }
     }
 
     public static List<Role> getMemberRoles(CommandEvent event) {

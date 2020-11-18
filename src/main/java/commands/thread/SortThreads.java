@@ -10,14 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import commands.thread.database.ThreadDbTable;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Category;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.MessageDeleteEvent;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Category;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import utils.CategoryUtil;
 import utils.GuildUtil;
 
@@ -51,7 +51,7 @@ public final class SortThreads {
     }
 
     private static void countAndSortMessages(TextChannel thread, final long messageId, int amountOfThreads) {
-        thread.getMessageById(messageId).queue(
+        thread.retrieveMessageById(messageId).queue(
             latestMsg -> {
                 int initialPostCount = ThreadDbTable.getPostCount(thread);
                 countSortAndDoInactivityTask(initialPostCount, latestMsg, thread, amountOfThreads);
@@ -136,16 +136,16 @@ public final class SortThreads {
             .getTextChannels();
 
         if (!allThreads.isEmpty()) {
-            GuildUtil.getGuild(jda).getController()
+            GuildUtil.getGuild(jda)
                 .modifyTextChannelPositions(threadCategory)
-                .sortOrder(Comparator.comparingInt(ThreadDbTable::getPostCount)
+                .sortOrder(Comparator.comparingInt(ThreadDbTable::getGuildChannelPostCount)
                     .reversed())
                 .queue(success ->
                     InactiveThreadChecker.startOrCancelInactivityTaskIfNotTopX(allThreads));
         }
     }
 
-    public static void handleSortingOfThreads(Event event, TextChannel textChan) {
+    public static void handleSortingOfThreads(GenericEvent event, TextChannel textChan) {
         if (CategoryUtil.getThreadCategory(event.getJDA()).getTextChannels().contains(textChan)) {
             if (event instanceof MessageReceivedEvent) {
                 SortThreads.countUniquePostsAndSort(textChan, 1);

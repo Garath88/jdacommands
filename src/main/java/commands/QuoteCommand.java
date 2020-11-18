@@ -9,13 +9,13 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import commands.copy.MediaPatterns;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.Message.Attachment;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.utils.MiscUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.utils.TimeUtil;
 import utils.ArgumentChecker;
 import utils.GuildUtil;
 
@@ -39,7 +39,7 @@ public final class QuoteCommand extends Command {
             ArgumentChecker.checkArgsBySpaceRequires(args, 1);
             GuildUtil.getGuild(event.getJDA()).getTextChannels().forEach(chan -> {
                 if (chan.canTalk()) {
-                    chan.getMessageById(args).queue(message -> {
+                    chan.retrieveMessageById(args).queue(message -> {
                         if (!message.getContentDisplay().isEmpty() || !message.getAttachments().isEmpty()) {
                             event.reply(String.format("*%s quoted:*",
                                 event.getAuthor().getAsTag()),
@@ -78,7 +78,7 @@ public final class QuoteCommand extends Command {
     private void createFooter(EmbedBuilder builder, Message message) {
         builder.setFooter(String.format("in #%s • %s",
             message.getTextChannel().getName(),
-            MiscUtil.getDateTimeString(message.getCreationTime())),
+            TimeUtil.getDateTimeString(message.getTimeCreated())),
             null);
     }
 

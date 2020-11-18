@@ -29,7 +29,7 @@ public final class SayStorage {
         }
     }
 
-    static boolean getUseDash() {
+    public static boolean getUseDash() {
         return useDash;
     }
 

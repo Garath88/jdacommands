@@ -8,8 +8,8 @@ import com.google.common.base.Preconditions;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import net.dv8tion.jda.core.entities.Message.Attachment;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.User;
 import utils.ArgumentChecker;
 import utils.MessageUtil;
 import utils.PrivateChannelWrapper;
@@ -34,10 +34,8 @@ public class DMCommand extends Command {
             User user = UserUtil.findUser(items[1], event);
             List<Attachment> attachments = event.getMessage().getAttachments();
             user.openPrivateChannel().queue(
-                PrivateChannelWrapper.userIsInGuild(pc -> {
-                    MessageUtil.sendAttachmentsToChannel(attachments, pc);
-                    MessageUtil.sendMessageToChannel(items[0], pc, true);
-                }),
+                PrivateChannelWrapper.userIsInGuild(pc ->
+                    MessageUtil.sendAttachmentsAndSayTextToChannel(attachments, items[0], pc)),
                 fail -> {
                 });
         } catch (IllegalArgumentException e) {

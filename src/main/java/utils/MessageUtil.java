@@ -1,7 +1,7 @@
 package utils;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -14,15 +14,15 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import commands.say.SayStorage;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.Message.Attachment;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 public final class MessageUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageUtil.class);
@@ -30,9 +30,67 @@ public final class MessageUtil {
     private MessageUtil() {
     }
 
-    public static void sendSayCommandMessageToChannel(String message, MessageChannel channel, boolean usePrefix) {
+    public static void sendMessagesToUser(User user, List<Message> messages) {
+        user.openPrivateChannel()
+            .queue(PrivateChannelWrapper.userIsInGuild(pc ->
+                MessageUtil.sendMessagesToChannel(pc, messages, 0)));
+    }
+
+    public static void sendMessageToUser(User user, String message, int delayInMillis) {
+        user.openPrivateChannel()
+            .queue(PrivateChannelWrapper.userIsInGuild(pc -> {
+                pc.sendTyping().queue();
+                MessageUtil.sendMessageToChannel(message, pc, delayInMillis);
+            }));
+    }
+
+    private static void sendMessagesToChannel(MessageChannel channel, List<Message> messages, int messageCounter) {
+        if (messageCounter < messages.size()) {
+            Message message = messages.get(messageCounter);
+            messageCounter++;
+            final int counter = messageCounter;
+            List<Attachment> attachments = message.getAttachments();
+            if (!message.getContentRaw().isEmpty()) {
+                MessageAction action = channel.sendMessage(message);
+                if (attachments.size() == 1) {
+                    Attachment file = attachments.get(0);
+                    file.retrieveInputStream().thenAccept(data -> action.addFile(data, file.getFileName()).queue(
+                        success -> sendMessagesToChannel(channel, messages, counter), fail -> {
+                        }));
+                } else {
+                    action.queue(success -> sendMessagesToChannel(channel, messages, counter)
+                        , fail -> {
+                        });
+                }
+            } else {
+                attachments.forEach(attachment -> attachment.retrieveInputStream()
+                    .thenAccept(data -> channel.sendFile(data, attachment.getFileName())
+                        .queue(success -> sendMessagesToChannel(channel, messages, counter)))
+                    .exceptionally(e -> {
+                        LOGGER.error("ATTACHMENT_ERROR_MSG", e);
+                        return null;
+                    }));
+            }
+        }
+    }
+
+    public static void sendAttachmentsAndSayTextToChannel(List<Attachment> attachments, String message, MessageChannel channel) {
+        if (!attachments.isEmpty()) {
+            attachments.forEach(attachment -> attachment.retrieveInputStream()
+                .thenAccept(data -> channel.sendFile(data, attachment.getFileName())
+                    .queue(success -> sendSayTextMessageToChannel(message, channel)))
+                .exceptionally(e -> {
+                    LOGGER.error("ATTACHMENT_ERROR_MSG", e);
+                    return null;
+                }));
+        } else {
+            sendSayTextMessageToChannel(message, channel);
+        }
+    }
+
+    private static void sendSayTextMessageToChannel(String message, MessageChannel channel) {
         if (!StringUtils.isEmpty(message)) {
-            if (usePrefix) {
+            if (SayStorage.getUseDash()) {
                 message = "- " + message;
             }
             if (!message.isEmpty()) {
@@ -45,49 +103,14 @@ public final class MessageUtil {
         }
     }
 
-    public static void sendMessageToChannel(String message, MessageChannel channel, boolean usePrefix) {
-        if (!StringUtils.isEmpty(message)) {
-            if (usePrefix) {
-                message = "- " + message;
-            }
-            MessageUtil.sendMessageToChannel(message, channel);
-        }
-    }
-
-    public static void sendMessageToUser(User user, Message message) {
-        user.openPrivateChannel()
-            .queue(PrivateChannelWrapper.userIsInGuild(pc ->
-                MessageUtil.sendMessageToChannel(pc, message)));
-    }
-
-    public static void sendMessageToUser(User user, String message, int delayInMillis) {
-        user.openPrivateChannel()
-            .queue(PrivateChannelWrapper.userIsInGuild(pc -> {
-                pc.sendTyping().queue();
-                MessageUtil.sendMessageToChannel(message, pc, delayInMillis);
-            }));
-    }
-
-    private static void sendMessageToChannel(MessageChannel channel, Message message) {
-        sendMessageToChannel(message.getContentRaw(), channel);
-        sendEmbedsToChannel(channel, message.getEmbeds());
-        List<Message.Attachment> attachments = message.getAttachments();
-        if (!attachments.isEmpty()) {
-            sendAttachmentsToChannel(attachments, channel);
-        }
-    }
-
-    private static void sendEmbedsToChannel(MessageChannel channel, List<MessageEmbed> embeds) {
-        embeds.forEach(embed -> channel.sendMessage(embed).queue());
-    }
-
-    public static void sendAttachmentsToChannel(List<Attachment> attachments, MessageChannel channel) {
+    public static void sendAttachmentsToChannel(List<Message.Attachment> attachments, MessageChannel channel) {
         attachments.forEach(attachment -> {
             try {
-                channel.sendFile(attachment.getInputStream(), attachment.getFileName())
+                channel.sendFile(attachment.retrieveInputStream().get(), attachment.getFileName())
                     .queue();
-            } catch (IOException e) {
-                LOGGER.error("Failed to add attachment", e);
+            } catch (InterruptedException | ExecutionException e) {
+                LOGGER.error("Thread got interrupted while trying to send attachment", e);
+                Thread.currentThread().interrupt();
             }
         });
     }

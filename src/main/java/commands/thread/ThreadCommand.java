@@ -15,15 +15,15 @@ import commands.quiz.QuizQuestion;
 import commands.thread.database.ThreadDbInfo;
 import commands.thread.database.ThreadDbTable;
 import commands.thread.prompt.ThreadQuestion;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Channel;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message.Attachment;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import utils.ArgumentChecker;
 import utils.CategoryUtil;
 import utils.GuildUtil;
@@ -129,26 +129,26 @@ public class ThreadCommand extends Command {
     }
 
     private static void createThreadChannel(CommandEvent event, ThreadInfo threadInfo) {
-        net.dv8tion.jda.core.entities.Category threadCategory = CategoryUtil.getThreadCategory(event.getJDA());
+        net.dv8tion.jda.api.entities.Category threadCategory = CategoryUtil.getThreadCategory(event.getJDA());
         String name = threadInfo.getName();
         String description = threadInfo.getDescription();
         validateThreadName(threadCategory, name);
         final String channelTopic = name.replaceAll(" ", "` `");
-        GuildUtil.getGuild(event.getJDA()).getController().createTextChannel(channelTopic)
+        GuildUtil.getGuild(event.getJDA()).createTextChannel(channelTopic)
             .setTopic(description)
             .setNSFW(true)
             .setParent(threadCategory)
             .queue(chan -> doTasks(chan, event, description, threadInfo.getStoreInDatabase()));
     }
 
-    private static void validateThreadName(net.dv8tion.jda.core.entities.Category customCategory, String topic) {
+    private static void validateThreadName(net.dv8tion.jda.api.entities.Category customCategory, String topic) {
         if (customCategory.getTextChannels().stream().anyMatch(chan -> chan.getName().equals(topic))) {
             throw new IllegalArgumentException(String.format(
                 "This thread **%s** already exists! Please retry the command again.", topic));
         }
     }
 
-    private static void doTasks(Channel threadChannel, CommandEvent event, String topic, boolean storeInDatabase) {
+    private static void doTasks(TextChannel threadChannel, CommandEvent event, String topic, boolean storeInDatabase) {
         Guild guild = GuildUtil.getGuild(event.getJDA());
         setDenyForRole(threadChannel, guild, QuizQuestion.QUIZ_ROLE, Permission.MESSAGE_READ);
         setDenyForRole(threadChannel, guild, QuizQuestion.RULES_ROLE, Permission.MESSAGE_READ);
@@ -167,20 +167,26 @@ public class ThreadCommand extends Command {
         event.reply(String.format("Successfully created new thread: **%s**", threadTextChannel.getAsMention()));
     }
 
-    /*TODO Refactor this*/
-    private static void setDenyForRole(Channel threadChannel, Guild guild, String roleName, Permission permission) {
+    private static void setDenyForRole(TextChannel threadChannel, Guild guild, String roleName, Permission permission) {
         Role role = RoleUtil.findRole(guild, roleName);
-        List<Permission> threadPermissions =
-            threadChannel.getPermissionOverride(role)
-                .getDenied();
-        if (!threadPermissions.contains(permission)) {
+        List<PermissionOverride> threadPermissions = threadChannel.getRolePermissionOverrides();
+        boolean roleIsNotDeniedForChannel = threadPermissions.stream()
+            .noneMatch(perm -> perm.getDenied().contains(permission));
+
+        if (roleIsNotDeniedForChannel) {
+            threadChannel.createPermissionOverride(role)
+                .setDeny(permission)
+                .queue();
+        }
+
+        if (roleIsNotDeniedForChannel) {
             threadChannel.createPermissionOverride(role)
                 .setDeny(permission)
                 .queue();
         }
     }
 
-    private static TextChannel findThreadTextChannel(Channel threadChannel, JDA jda) {
+    private static TextChannel findThreadTextChannel(TextChannel threadChannel, JDA jda) {
         return TextChannelUtil.getChannel(threadChannel.getId(), jda);
     }
 

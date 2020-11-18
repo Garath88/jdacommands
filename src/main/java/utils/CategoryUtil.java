@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Category;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Category;
 
 public final class CategoryUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryUtil.class);
@@ -21,7 +21,7 @@ public final class CategoryUtil {
             .stream()
             .findFirst()
             .orElseThrow(() -> {
-                String errorMsg = "Custom category was not found!";
+                String errorMsg = String.format("Custom category \"%s\" was not found!", CATEGORY);
                 LOGGER.error(errorMsg);
                 return new IllegalStateException(errorMsg);
             });

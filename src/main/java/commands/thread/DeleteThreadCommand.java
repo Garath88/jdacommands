@@ -12,10 +12,10 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import commands.thread.database.ThreadDbInfo;
 import commands.thread.database.ThreadDbTable;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
 import utils.ArgumentChecker;
 import utils.CategoryUtil;
 import utils.GuildUtil;
@@ -41,24 +41,26 @@ public class DeleteThreadCommand extends Command {
     protected void execute(CommandEvent event) {
         String args = event.getArgs();
         Member member = GuildUtil.getGuild(event.getJDA()).getMember(event.getAuthor());
-        ThreadDbInfo userThreadInfo = ThreadDbTable.getThreadInfoFromUser(member.getUser());
-        if (args.isEmpty()) {
-            event.reply(String.format("Listing created threads for %s: %n",
-                event.getMessage().getAuthor().getAsMention()));
-            event.reply(userThreadInfo.getlistedChannels());
-            if (!userThreadInfo.getThreadIds().isEmpty()) {
-                promptUser(userThreadInfo, event);
-            }
-        } else {
-            try {
-                TextChannel threadToDelete = getThreadToDeleteByName(args, event.getJDA());
-                userThreadInfo.getThreadIds().stream()
-                    .filter(id -> id == threadToDelete.getIdLong())
-                    .findFirst()
-                    .orElseThrow(() -> createThreadNotFoundException(args));
-                deleteChannel(event, threadToDelete);
-            } catch (IllegalArgumentException | IllegalStateException ex) {
-                event.replyWarning(ex.getMessage());
+        if (member != null) {
+            ThreadDbInfo userThreadInfo = ThreadDbTable.getThreadInfoFromUser(member.getUser());
+            if (args.isEmpty()) {
+                event.reply(String.format("Listing created threads for %s: %n",
+                    event.getMessage().getAuthor().getAsMention()));
+                event.reply(userThreadInfo.getlistedChannels());
+                if (!userThreadInfo.getThreadIds().isEmpty()) {
+                    promptUser(userThreadInfo, event);
+                }
+            } else {
+                try {
+                    TextChannel threadToDelete = getThreadToDeleteByName(args, event.getJDA());
+                    userThreadInfo.getThreadIds().stream()
+                        .filter(id -> id == threadToDelete.getIdLong())
+                        .findFirst()
+                        .orElseThrow(() -> createThreadNotFoundException(args));
+                    deleteChannel(event, threadToDelete);
+                } catch (IllegalArgumentException | IllegalStateException ex) {
+                    event.replyWarning(ex.getMessage());
+                }
             }
         }
     }

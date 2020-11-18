@@ -17,9 +17,10 @@ package commands.examples;
 
 import java.util.Random;
 
-import utils.ArgumentChecker;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import utils.ArgumentChecker;
 
 public class ChooseCommand extends Command {
 

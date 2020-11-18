@@ -4,9 +4,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
-import commands.thread.ThreadInfo;
 
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import commands.thread.ThreadInfo;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class ThreadDescriptionResponse implements Consumer<MessageReceivedEvent> {
 
@@ -23,7 +23,6 @@ public class ThreadDescriptionResponse implements Consumer<MessageReceivedEvent>
     @Override
     public void accept(MessageReceivedEvent e) {
         method.accept(event, new ThreadInfo(name, e.getMessage()
-            .getContentRaw()
-            .toLowerCase(), true));
+            .getContentRaw(), true));
     }
 }

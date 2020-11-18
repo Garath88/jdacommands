@@ -7,7 +7,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import commands.Permissions;
-import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.api.JDA;
 import utils.ArgumentChecker;
 
 public class SayEditCommand extends Command {
@@ -40,7 +40,7 @@ public class SayEditCommand extends Command {
         if (!text.isEmpty()) {
             JDA jda = event.getJDA();
             String channelId = SayStorage.getChannelId().orElseThrow(() -> new IllegalStateException("Not talking in any channel!"));
-            jda.getTextChannelById(channelId).getMessageById(messageId).queue(message -> {
+            jda.getTextChannelById(channelId).retrieveMessageById(messageId).queue(message -> {
                 if (message.getAuthor().equals(event.getSelfUser())) {
                     message.editMessage(text).queue();
                 } else {

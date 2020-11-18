@@ -5,7 +5,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import commands.Permissions;
 import commands.user.UserInfoStorage;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 import utils.ArgumentChecker;
 import utils.EmojiUtil;
 import utils.UserUtil;

@@ -11,11 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import database.MariaDbConnector;
-import net.dv8tion.jda.core.entities.Channel;
-import net.dv8tion.jda.core.entities.ISnowflake;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.ISnowflake;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+
 
 /*TODO: TEST JOOQ INSTEAD OF THIS*/
 
@@ -28,7 +29,7 @@ public final class ThreadDbTable {
     private ThreadDbTable() {
     }
 
-    public static void addThread(User user, Channel thread) {
+    public static void addThread(User user, TextChannel thread) {
         String sql = String.format("INSERT INTO %s.%s "
                 + "(user,user_id, name, id) "
                 + "VALUES ('%s', '%s', '%s', '%s')",
@@ -114,7 +115,7 @@ public final class ThreadDbTable {
     private static void checkStoredLatestMessage(TextChannel thread) {
         long messageId = getLatestMsgId(thread.getIdLong());
         if (messageId != 0) {
-            thread.getMessageById(messageId)
+            thread.retrieveMessageById(messageId)
                 .queue(success -> {
                 }, fail -> updateLatestMsgInDbIfDeleted(messageId, thread));
         }
@@ -166,6 +167,11 @@ public final class ThreadDbTable {
     }
 
     public static int getPostCount(TextChannel thread) {
+        long threadId = thread.getIdLong();
+        return getPostCount(threadId);
+    }
+
+    public static int getGuildChannelPostCount(GuildChannel thread) {
         long threadId = thread.getIdLong();
         return getPostCount(threadId);
     }

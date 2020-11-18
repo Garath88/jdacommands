@@ -5,10 +5,10 @@ import java.util.concurrent.TimeUnit;
 import com.jagrosh.jdautilities.command.impl.CommandClientImpl;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import utils.GuildUtil;
 import utils.MessageUtil;
 import utils.PrivateChannelWrapper;
@@ -24,7 +24,7 @@ public final class QuizQuestion {
     private QuizQuestion() {
     }
 
-    public static void perform(Event event, EventWaiter waiter, CommandClientImpl client) {
+    public static void perform(GenericEvent event, EventWaiter waiter, CommandClientImpl client) {
         User user = ((GuildMemberJoinEvent)event).getMember().getUser();
         if (!user.isBot()) {
             Guild guild = GuildUtil.getGuild(event.getJDA());

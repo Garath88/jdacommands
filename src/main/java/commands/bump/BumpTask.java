@@ -1,6 +1,7 @@
 package commands.bump;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import tasks.Task;
 
 final class BumpTask extends Task {

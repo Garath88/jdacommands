@@ -10,9 +10,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import commands.Permissions;
 import commands.thread.ThreadCommand;
 import commands.thread.ThreadInfo;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import utils.MessageUtil;
 import utils.TextChannelUtil;
 
@@ -63,8 +63,7 @@ public final class SayCommand extends Command {
         TextChannel textChannel = TextChannelUtil.getChannel(channelId, event.getJDA());
         List<Message.Attachment> attachments = event.getMessage().getAttachments();
         if (StringUtils.isNotEmpty(message) || !attachments.isEmpty()) {
-            MessageUtil.sendAttachmentsToChannel(attachments, textChannel);
-            MessageUtil.sendSayCommandMessageToChannel(message, textChannel, SayStorage.getUseDash());
+            MessageUtil.sendAttachmentsAndSayTextToChannel(attachments, message, textChannel);
         } else {
             event.reply(String.format("Currently talking in channel: **%s**",
                 textChannel.getName()));

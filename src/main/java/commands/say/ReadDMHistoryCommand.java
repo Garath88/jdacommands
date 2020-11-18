@@ -7,7 +7,7 @@ import com.google.common.collect.Lists;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.User;
 import utils.ArgumentChecker;
 import utils.MessageUtil;
 import utils.UserUtil;
@@ -29,14 +29,13 @@ public class ReadDMHistoryCommand extends Command {
             validateArguments(args);
             String[] items = args.split("\\s");
             User user = UserUtil.findUser(items[0], event);
-            user.openPrivateChannel()
-                .queue(pc -> pc.getIterableHistory().limit(Integer.valueOf(items[1])).queue(
-                    messages -> Lists.reverse(messages).forEach(
-                        msg -> MessageUtil.sendMessageToUser(event.getAuthor(), msg)),
+            user.openPrivateChannel().queue(
+                pc -> pc.getIterableHistory().limit(Integer.valueOf(items[1])).queue(
+                    messages -> MessageUtil.sendMessagesToUser(event.getAuthor(), Lists.reverse(messages)),
                     fail -> {
-                    })
-                    , fail -> {
-                    });
+                    }),
+                fail -> {
+                });
         } catch (IllegalArgumentException e) {
             event.replyWarning(e.getMessage());
         }

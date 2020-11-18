@@ -7,9 +7,9 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import commands.waifu.Roles;
 import commands.waifu.WaifuCommand;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.exceptions.HierarchyException;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class WaifuResponse implements Consumer<MessageReceivedEvent> {
     private CommandEvent event;

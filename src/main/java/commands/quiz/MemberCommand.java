@@ -5,9 +5,9 @@ import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import utils.GuildUtil;
 import utils.MessageUtil;
 
@@ -27,7 +27,7 @@ public class MemberCommand extends Command {
         try {
             Guild guild = GuildUtil.getGuild(event.getJDA());
             Member member = guild.getMember(event.getAuthor());
-            if (!member.getRoles().isEmpty() && event.getChannelType().equals(ChannelType.PRIVATE)) {
+            if (member != null && !member.getRoles().isEmpty() && event.getChannelType().equals(ChannelType.PRIVATE)) {
                 QuizResponse quizResponse = new QuizResponse(event.getClient());
                 String response = event.getArgs();
                 if (response.isEmpty()) {

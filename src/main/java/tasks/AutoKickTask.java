@@ -9,13 +9,13 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import utils.GuildUtil;
 import utils.RoleUtil;
 
@@ -50,14 +50,14 @@ public class AutoKickTask extends Task {
             .ifPresent(chan -> chan.getMembers().forEach(member -> {
                 Guild guild = GuildUtil.getGuild(jda);
                 if (isNonServerMember(member, guild)) {
-                    Duration duration = Duration.between(member.getJoinDate().toInstant(), Instant.now());
+                    Duration duration = Duration.between(member.getTimeJoined().toInstant(), Instant.now());
                     if (duration.toDays() >= MAX_IDLE_DAYS) {
                         User user = member.getUser();
                         LOGGER.debug("Kicking member {}",
                             user.getAsTag());
                         user.openPrivateChannel().queue(
                             pc -> pc.sendMessage(EMBED).queue(fileSent -> pc.sendMessage(MESSAGE).queue(
-                                messageSent -> guild.getController().kick(member)
+                                messageSent -> guild.kick(member)
                                     .queueAfter(10, TimeUnit.SECONDS),
                                 fail -> {
                                 }),

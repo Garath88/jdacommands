@@ -2,8 +2,8 @@ package utils;
 
 import java.util.List;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public final class TextChannelUtil {
     private TextChannelUtil() {

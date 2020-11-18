@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 
 final class MentionUtil {
     private static final Pattern MENTION_PATTERN = Pattern.compile("@[A-z]*#(\\d{4})");

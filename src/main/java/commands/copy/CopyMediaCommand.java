@@ -12,11 +12,11 @@ import com.google.common.collect.Lists;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import utils.ArgumentChecker;
 import utils.MessageUtil;
 import utils.TextChannelUtil;
@@ -47,7 +47,7 @@ public class CopyMediaCommand extends Command {
             JDA jda = event.getJDA();
             fromChannel = TextChannelUtil.getChannel(items[0], jda);
             toChannel = TextChannelUtil.getChannel(items[1], jda);
-            fromChannel.getMessageById(items[2]).queue(
+            fromChannel.retrieveMessageById(items[2]).queue(
                 firstMsg -> {
                     checkMessageForPatternMatch(firstMsg.getContentRaw(), toChannel);
                     MessageUtil.sendAttachmentsToChannel(firstMsg.getAttachments(), toChannel);
