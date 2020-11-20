@@ -21,6 +21,7 @@ import utils.RoleUtil;
 
 public class AutoKickTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoKickTask.class);
+    /*TODO: Remove hardcoded channel id*/
     private static final String WELCOME_CHANNEL_ID = "421959386068680714";
     private static final long MAX_IDLE_DAYS = 3;
     private static final String MESSAGE =
