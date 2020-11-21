@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 public final class MessageUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageUtil.class);
+    private static final int MAX_UPLOAD_8_MB = 8_000_000;
 
     private MessageUtil() {
     }
@@ -44,6 +45,7 @@ public final class MessageUtil {
             }));
     }
 
+    /**TODO Refactor this..*/
     private static void sendMessagesToChannel(MessageChannel channel, List<Message> messages, int messageCounter) {
         if (messageCounter < messages.size()) {
             Message message = messages.get(messageCounter);
@@ -54,35 +56,39 @@ public final class MessageUtil {
                 MessageAction action = channel.sendMessage(message);
                 if (attachments.size() == 1) {
                     Attachment file = attachments.get(0);
-                    file.retrieveInputStream().thenAccept(data -> action.addFile(data, file.getFileName()).queue(
-                        success -> sendMessagesToChannel(channel, messages, counter), fail -> {
-                        }));
+                    if (file.getSize() <= MAX_UPLOAD_8_MB) {
+                        file.retrieveInputStream().thenAccept(data -> action.addFile(data, file.getFileName()).queue(
+                            success -> sendMessagesToChannel(channel, messages, counter)));
+                    } else {
+                        action.queue(success -> channel.sendMessage(file.getUrl()).queue(
+                            success2 -> sendMessagesToChannel(channel, messages, counter)));
+                    }
                 } else {
-                    action.queue(success -> sendMessagesToChannel(channel, messages, counter)
-                        , fail -> {
-                        });
+                    action.queue(success -> sendMessagesToChannel(channel, messages, counter));
                 }
             } else {
-                attachments.forEach(attachment -> attachment.retrieveInputStream()
-                    .thenAccept(data -> channel.sendFile(data, attachment.getFileName())
-                        .queue(success -> sendMessagesToChannel(channel, messages, counter)))
-                    .exceptionally(e -> {
-                        LOGGER.error("ATTACHMENT_ERROR_MSG", e);
-                        return null;
-                    }));
+                attachments.forEach(attachment -> {
+                    if (attachment.getSize() <= MAX_UPLOAD_8_MB) {
+                        attachment.retrieveInputStream()
+                            .thenAccept(data -> channel.sendFile(data, attachment.getFileName())
+                                .queue(success -> sendMessagesToChannel(channel, messages, counter)))
+                            .exceptionally(e -> {
+                                LOGGER.error("ATTACHMENT_ERROR_MSG", e);
+                                return null;
+                            });
+                    } else {
+                        channel.sendMessage(attachment.getUrl()).queue(
+                            success2 -> sendMessagesToChannel(channel, messages, counter));
+                    }
+                });
             }
         }
     }
 
     public static void sendAttachmentsAndSayTextToChannel(List<Attachment> attachments, String message, MessageChannel channel) {
         if (!attachments.isEmpty()) {
-            attachments.forEach(attachment -> attachment.retrieveInputStream()
-                .thenAccept(data -> channel.sendFile(data, attachment.getFileName())
-                    .queue(success -> sendSayTextMessageToChannel(message, channel)))
-                .exceptionally(e -> {
-                    LOGGER.error("ATTACHMENT_ERROR_MSG", e);
-                    return null;
-                }));
+            sendAttachmentsToChannel(attachments, channel);
+            sendSayTextMessageToChannel(message, channel);
         } else {
             sendSayTextMessageToChannel(message, channel);
         }
@@ -93,12 +99,14 @@ public final class MessageUtil {
             if (SayStorage.getUseDash()) {
                 message = "- " + message;
             }
-            if (!message.isEmpty()) {
-                channel.sendMessage(message)
+            final String sayMessage = message;
+            if (!sayMessage.isEmpty()) {
+                channel.sendMessage(sayMessage)
                     .queue(success ->
                             SayStorage.setLastMessageId(success.getId()),
-                        fail -> {
-                        });
+                        fail -> LOGGER.error(String.format(
+                            "Failed to setLastMessageId for message: %s",
+                            sayMessage), fail));
             }
         }
     }
@@ -106,8 +114,13 @@ public final class MessageUtil {
     public static void sendAttachmentsToChannel(List<Message.Attachment> attachments, MessageChannel channel) {
         attachments.forEach(attachment -> {
             try {
-                channel.sendFile(attachment.retrieveInputStream().get(), attachment.getFileName())
-                    .queue();
+                if (attachment.getSize() <= MAX_UPLOAD_8_MB) {
+                    channel.sendFile(attachment.retrieveInputStream().get(), attachment.getFileName())
+                        .queue();
+                } else {
+                    channel.sendMessage(attachment.getUrl())
+                        .queue();
+                }
             } catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("Thread got interrupted while trying to send attachment", e);
                 Thread.currentThread().interrupt();
@@ -119,8 +132,7 @@ public final class MessageUtil {
         if (!message.isEmpty()) {
             channel.sendMessage(message)
                 .queue(success -> {
-                }, fail -> {
-                });
+                }, fail -> LOGGER.error("Failed to sendMessageToChannel for message: " + message, fail));
         }
     }
 
