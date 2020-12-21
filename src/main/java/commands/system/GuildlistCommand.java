@@ -55,7 +55,7 @@ public class GuildlistCommand extends Command {
 
     public GuildlistCommand(EventWaiter waiter) {
         this.name = "guildlist";
-        this.help = "shows the list of guilds the bot is on";
+        this.help = "Shows the list of guilds the bot is on";
         this.arguments = "[pagenum]";
         this.botPermissions = new Permission[] { Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION };
         this.guildOnly = false;

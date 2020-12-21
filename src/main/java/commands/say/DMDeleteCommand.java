@@ -18,7 +18,7 @@ public class DMDeleteCommand extends Command {
 
     public DMDeleteCommand(String name) {
         this.name = String.format("%s_dm_delete", name.toLowerCase());
-        this.help = "deletes the last DM sent";
+        this.help = "Deletes the last DM sent";
         this.arguments = "<user id>";
         this.guildOnly = false;
         this.ownerCommand = true;

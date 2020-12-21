@@ -30,7 +30,7 @@ public class HelloCommand extends Command {
         this.waiter = waiter;
         this.name = "hello";
         this.aliases = new String[] { "hi" };
-        this.help = "says hello and waits for a response.";
+        this.help = "Says hello and waits for a response.";
     }
 
     @Override

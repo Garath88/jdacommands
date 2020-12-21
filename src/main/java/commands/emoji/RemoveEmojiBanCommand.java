@@ -14,7 +14,7 @@ public final class RemoveEmojiBanCommand extends Command {
 
     public RemoveEmojiBanCommand() {
         this.name = "ban_emoji_rm";
-        this.help = "removes an emoji ban for a user or all members.";
+        this.help = "Removes an emoji ban for a user or all members.";
         this.arguments = "<emoji> <user id> or <all>";
         this.guildOnly = true;
         this.requiredRoles = Permissions.MODERATOR.getValues();

@@ -20,15 +20,16 @@ class RulesMessage {
             .queueAfter(15, TimeUnit.SECONDS,
                 PrivateChannelWrapper.userIsInGuild(pc -> pc.sendMessage(
                     "- OH! I almost forgot!")
-                    .queue(msg2 -> {
+                    .queue(PrivateChannelWrapper.userIsInGuild(msg2 -> {
                             pc.sendTyping().queue();
                             pc.sendMessage(String.format("- You should read the rules in %s", rulesChannel))
                                 .queueAfter(1000, TimeUnit.MILLISECONDS,
-                                    msg3 -> RulesQuestion.perform(TIME_TO_READ_RULES_IN_SEC,
-                                        user, guild, waiter, client),
+                                    PrivateChannelWrapper.userIsInGuild(
+                                        msg3 -> RulesQuestion.perform(TIME_TO_READ_RULES_IN_SEC,
+                                            user, guild, waiter, client)),
                                     fail -> {
                                     });
-                        },
+                        }),
                         fail -> {
                         })),
                 fail -> {

@@ -16,7 +16,7 @@ public class ReadDMHistoryCommand extends Command {
 
     public ReadDMHistoryCommand(String name) {
         this.name = String.format("%s_dm_history", name.toLowerCase());
-        this.help = String.format("reads %s DM history with a user.", name);
+        this.help = String.format("Reads %s DM history with a user.", name);
         this.arguments = "<user id> <number of messages>";
         this.guildOnly = false;
         this.ownerCommand = true;

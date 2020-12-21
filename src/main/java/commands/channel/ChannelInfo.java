@@ -1,11 +1,11 @@
-package commands.thread;
+package commands.channel;
 
-public final class ThreadInfo {
+public final class ChannelInfo {
     private final String name;
     private final String description;
     private final boolean storeInDatabase;
 
-    public ThreadInfo(String name, String description, boolean storeInDatabase) {
+    public ChannelInfo(String name, String description, boolean storeInDatabase) {
         this.name = name;
         this.description = description;
         this.storeInDatabase = storeInDatabase;
@@ -15,11 +15,11 @@ public final class ThreadInfo {
         return name;
     }
 
-    String getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    boolean getStoreInDatabase() {
+    public boolean getStoreInDatabase() {
         return storeInDatabase;
     }
 }

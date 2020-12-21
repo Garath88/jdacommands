@@ -1,4 +1,4 @@
-package commands.thread;
+package commands.channel.thread;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

@@ -1,4 +1,4 @@
-package commands.thread.database;
+package commands.channel.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,13 +20,13 @@ import net.dv8tion.jda.api.entities.User;
 
 /*TODO: TEST JOOQ INSTEAD OF THIS*/
 
-public final class ThreadDbTable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ThreadDbTable.class);
+public final class ThreadsDbTable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ThreadsDbTable.class);
     private static final String TABLE_NAME = "threads";
     private static final String QUERY_RESULT_ERROR = "Failed to close or get result from query";
     private static final String DB_NAME = MariaDbConnector.getConfig().getDbName();
 
-    private ThreadDbTable() {
+    private ThreadsDbTable() {
     }
 
     public static void addThread(User user, TextChannel thread) {
@@ -35,19 +35,7 @@ public final class ThreadDbTable {
                 + "VALUES ('%s', '%s', '%s', '%s')",
             DB_NAME, TABLE_NAME,
             user.getAsTag(), user.getId(), thread.getName(), thread.getId());
-        executeQuery(sql);
-    }
-
-    private static void executeQuery(String sql) {
-        try {
-            LOGGER.debug(sql);
-            ResultSet result = MariaDbConnector.executeSql(sql);
-            if (result != null) {
-                result.close();
-            }
-        } catch (SQLException e) {
-            LOGGER.error("Failed to close resource from query", e);
-        }
+        SqlUtil.executeQuery(sql);
     }
 
     private static List<Long> getAllChannelIds() {
@@ -68,7 +56,7 @@ public final class ThreadDbTable {
         return channelIds;
     }
 
-    public static ThreadDbInfo getThreadInfoFromUser(User user) {
+    public static ChannelDbInfo getThreadInfoFromUser(User user) {
         String sql = String.format(
             "SELECT name, id FROM %s.%s WHERE user_id = %s",
             DB_NAME, TABLE_NAME, user.getId());
@@ -85,31 +73,31 @@ public final class ThreadDbTable {
                     channelIds.add(result.getLong("id"));
                 }
                 result.close();
-                return new ThreadDbInfo(String.join("\n", outprint), channelIds);
+                return new ChannelDbInfo(String.join("\n", outprint), channelIds);
             } catch (SQLException e) {
                 LOGGER.error(QUERY_RESULT_ERROR, e);
             }
         }
-        return new ThreadDbInfo("No created channels found!",
+        return new ChannelDbInfo("No created channels found!",
             Collections.emptyList());
     }
 
     public static void deleteChannel(Long id) {
         String sql = String.format(
             "DELETE FROM %s.%s WHERE id = %s", DB_NAME, TABLE_NAME, id);
-        executeQuery(sql);
+        SqlUtil.executeQuery(sql);
     }
 
     public static void checkForThreadDbInconsistency(List<TextChannel> threads) {
         List<Long> allThreadsById = threads.stream()
             .map(ISnowflake::getIdLong)
             .collect(Collectors.toList());
-        List<Long> deletedChannels = ThreadDbTable.getAllChannelIds().stream()
+        List<Long> deletedChannels = ThreadsDbTable.getAllChannelIds().stream()
             .filter(chanId -> !allThreadsById
                 .contains(chanId))
             .collect(Collectors.toList());
-        deletedChannels.forEach(ThreadDbTable::deleteChannel);
-        threads.forEach(ThreadDbTable::checkStoredLatestMessage);
+        deletedChannels.forEach(ThreadsDbTable::deleteChannel);
+        threads.forEach(ThreadsDbTable::checkStoredLatestMessage);
     }
 
     private static void checkStoredLatestMessage(TextChannel thread) {
@@ -122,7 +110,7 @@ public final class ThreadDbTable {
     }
 
     public static void updateLatestMsgInDbIfDeleted(long deletedMsgId, TextChannel textChan) {
-        if (deletedMsgId == ThreadDbTable.getLatestMsgId(textChan.getIdLong())) {
+        if (deletedMsgId == ThreadsDbTable.getLatestMsgId(textChan.getIdLong())) {
             updateToPreviousMsg(deletedMsgId, textChan);
         }
     }
@@ -132,10 +120,10 @@ public final class ThreadDbTable {
         textChan.getHistoryBefore(deletedMsgId, 1).queue(history -> {
             List<Message> messages = history.getRetrievedHistory();
             if (!messages.isEmpty()) {
-                ThreadDbTable.storeLatestMsgId(
+                ThreadsDbTable.storeLatestMsgId(
                     messages.get(0).getIdLong(), textChanId);
             } else {
-                ThreadDbTable.storeLatestMsgId(0, textChanId);
+                ThreadsDbTable.storeLatestMsgId(0, textChanId);
             }
         });
     }
@@ -144,7 +132,7 @@ public final class ThreadDbTable {
         String sql = String.format("UPDATE %s.%s "
                 + "SET latest_message_id = %s WHERE id = %s ",
             DB_NAME, TABLE_NAME, messageId, threadId);
-        executeQuery(sql);
+        SqlUtil.executeQuery(sql);
     }
 
     public static long getLatestMsgId(long threadId) {
@@ -201,6 +189,6 @@ public final class ThreadDbTable {
         String sql = String.format("UPDATE %s.%s "
                 + "SET post_count = %s WHERE id = %s ",
             DB_NAME, TABLE_NAME, postCount, threadId);
-        executeQuery(sql);
+        SqlUtil.executeQuery(sql);
     }
 }

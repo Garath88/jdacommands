@@ -1,22 +1,26 @@
-package commands.thread.prompt;
+package commands.channel.prompt;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import commands.thread.ThreadCommand;
+import commands.channel.ChannelInfo;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import utils.MessageUtil;
+import utils.TextChannelUtil;
 
-public class ThreadNameResponse implements Consumer<MessageReceivedEvent> {
+public class ChannelNameResponse implements Consumer<MessageReceivedEvent> {
 
+    private final BiConsumer<CommandEvent, ChannelInfo> createChannelMethod;
     private CommandEvent event;
     private final EventWaiter waiter;
 
-    ThreadNameResponse(CommandEvent event, EventWaiter waiter) {
+    ChannelNameResponse(CommandEvent event, EventWaiter waiter, BiConsumer<CommandEvent, ChannelInfo> createChannelMethod) {
         this.event = event;
         this.waiter = waiter;
+        this.createChannelMethod = createChannelMethod;
     }
 
     @Override
@@ -24,11 +28,13 @@ public class ThreadNameResponse implements Consumer<MessageReceivedEvent> {
         String name = e.getMessage().getContentRaw()
             .toLowerCase();
         try {
-            ThreadCommand.validateName(name, event);
-            event.reply(String.format("Great! Now type in a **description** for the thread %s",
+            TextChannelUtil.validateName(name, event);
+            event.reply(String.format("Great! Now type in a **description** for the channel %s",
                 event.getAuthor()));
             MessageUtil.waitForResponseInChannel(event, waiter,
-                new ThreadDescriptionResponse(event, name, ThreadCommand::createNewThread), 2 * 60,
+                new ChannelDecriptionResponse(event, name, (event, threadInfo) ->
+                    TextChannelUtil.createNewThread(event, threadInfo,
+                        createChannelMethod)), 2 * 60,
                 "");
         } catch (IllegalArgumentException ex) {
             event.replyWarning(String.format("%s %s",

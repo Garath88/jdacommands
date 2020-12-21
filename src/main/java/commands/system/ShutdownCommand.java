@@ -32,7 +32,7 @@ public class ShutdownCommand extends Command {
 
     public ShutdownCommand() {
         this.name = "shutdown";
-        this.help = "safely shuts off the bot.";
+        this.help = "Safely shuts off the bot.";
         this.guildOnly = false;
         this.ownerCommand = true;
     }

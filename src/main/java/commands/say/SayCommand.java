@@ -8,8 +8,8 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import commands.Permissions;
-import commands.thread.ThreadCommand;
-import commands.thread.ThreadInfo;
+import commands.channel.thread.ThreadCommand;
+import commands.channel.ChannelInfo;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -26,7 +26,7 @@ public final class SayCommand extends Command {
         botName = name;
         this.name = String.format("%s_say", name.toLowerCase());
         this.aliases = new String[] { name.substring(0, 1) + "s" };
-        this.help = String.format("say something with %s and optionally create a channel"
+        this.help = String.format("Say something with %s and optionally create a channel"
             + " or with no arguments to list current talking channel.", name);
         this.arguments = "[<text>] followed by separator '|' [<topic>]";
         this.guildOnly = true;
@@ -46,8 +46,9 @@ public final class SayCommand extends Command {
                 say(event, message[MESSAGE_INDEX]);
                 if (message.length == MESSAGE_WITH_CHANNEL_ID) {
                     String name = message[THREAD_INDEX].trim();
-                    ThreadCommand.createNewThread(event,
-                        new ThreadInfo(name, name, false));
+                    TextChannelUtil.createNewThread(event,
+                        new ChannelInfo(name, name, false),
+                        ThreadCommand::createThreadChannel);
                 }
             }
         } catch (IllegalArgumentException e) {

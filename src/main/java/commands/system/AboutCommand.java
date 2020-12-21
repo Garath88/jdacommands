@@ -53,7 +53,7 @@ public class AboutCommand extends Command {
         this.description = description;
         this.features = features;
         this.name = "about";
-        this.help = "shows info about the bot";
+        this.help = "Shows info about the bot";
         this.guildOnly = false;
         this.perms = perms;
         this.botPermissions = new Permission[] { Permission.MESSAGE_EMBED_LINKS };

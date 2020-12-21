@@ -11,7 +11,7 @@ public class HelpCommand extends Command {
 
     public HelpCommand() {
         this.name = "help";
-        this.help = "displays this help message.";
+        this.help = "Displays this help message.";
         this.guildOnly = false;
     }
 

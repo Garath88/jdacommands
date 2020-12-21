@@ -30,7 +30,7 @@ public final class BanEmojiCommand extends Command {
 
     public BanEmojiCommand() {
         this.name = "ban_emoji";
-        this.help = "automatically delete reactions and messages with the emoji for a user or all members.\nList deleted emojis with no arguments";
+        this.help = "Automatically delete reactions and messages with the emoji for a user or all members.\nList deleted emojis with no arguments";
         this.arguments = "<emoji> <user id> or <all>";
         this.guildOnly = true;
         this.requiredRoles = Permissions.MODERATOR.getValues();

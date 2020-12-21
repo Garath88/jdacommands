@@ -15,7 +15,7 @@ public class SayEditCommand extends Command {
     public SayEditCommand(String name) {
         this.name = String.format("%s_say_edit", name.toLowerCase());
         this.aliases = new String[] { name.substring(0, 1) + "e" };
-        this.help = String.format("edit a message by %s", name);
+        this.help = String.format("Edit a message by %s", name);
         this.arguments = "<message id> | <new message>";
         this.guildOnly = true;
         this.requiredRoles = Permissions.MODERATOR.getValues();

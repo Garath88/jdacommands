@@ -14,7 +14,7 @@ import utils.TextChannelUtil;
 public final class SetChanCommand extends Command {
     public SetChanCommand(String name) {
         this.name = String.format("%s_set_chan", name.toLowerCase());
-        this.help = String.format("sets a channel where %s can talk in.", name);
+        this.help = String.format("Sets a channel where %s can talk in.", name);
         this.arguments = "<channel id>";
         this.requiredRoles = Permissions.MODERATOR.getValues();
         this.guildOnly = false;

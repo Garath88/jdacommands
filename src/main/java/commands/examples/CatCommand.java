@@ -29,7 +29,7 @@ import net.dv8tion.jda.api.Permission;
 public class CatCommand extends Command {
     public CatCommand() {
         this.name = "cat";
-        this.help = "shows a random cat.";
+        this.help = "Shows a random cat.";
         this.botPermissions = new Permission[] {
             Permission.MESSAGE_EMBED_LINKS
         };

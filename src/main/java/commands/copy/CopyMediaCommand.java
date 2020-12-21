@@ -29,7 +29,7 @@ public class CopyMediaCommand extends Command {
 
     public CopyMediaCommand() {
         this.name = "copy_media";
-        this.help = "copies the attachments from one channel to another.";
+        this.help = "Copies the attachments from one channel to another.";
         this.arguments = "<from chan id> <to chan id> <starting msg id> [end msg id]";
         this.ownerCommand = true;
         this.botPermissions = new Permission[] {

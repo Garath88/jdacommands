@@ -24,12 +24,11 @@ public final class QuoteCommand extends Command {
 
     public QuoteCommand() {
         this.name = "quote";
-        this.help = "quote a message specified with the id of the message.";
+        this.help = "Quote a message specified with the id of the message.";
         this.arguments = "<message id>";
         this.botPermissions = new Permission[] {
             Permission.MESSAGE_READ
         };
-
     }
 
     @Override

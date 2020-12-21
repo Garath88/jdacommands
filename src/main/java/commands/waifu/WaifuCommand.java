@@ -75,7 +75,7 @@ public class WaifuCommand extends Command {
 
     public WaifuCommand(EventWaiter waiter) {
         this.name = "waifu";
-        this.help = "represent your favorite waifu by showing off your role and joining their team! ";
+        this.help = "Represent your favorite waifu by showing off your role and joining their team! ";
         this.arguments = "<name> or <none>";
         this.guildOnly = false;
         this.roles = new WaifuRoles();

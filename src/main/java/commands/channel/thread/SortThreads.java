@@ -1,4 +1,4 @@
-package commands.thread;
+package commands.channel.thread;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import commands.thread.database.ThreadDbTable;
+import commands.channel.database.ThreadsDbTable;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Category;
 import net.dv8tion.jda.api.entities.Message;
@@ -32,10 +32,10 @@ public final class SortThreads {
     public static void countUniquePostsAndSort(TextChannel thread, int amountOfThreads) {
         long threadId = thread.getIdLong();
         final long messageId;
-        Long temp = ThreadDbTable.getLatestMsgId(threadId);
+        Long temp = ThreadsDbTable.getLatestMsgId(threadId);
         if (temp == 0 && thread.hasLatestMessage()) {
             temp = thread.getLatestMessageIdLong();
-            ThreadDbTable.storeLatestMsgId(temp, threadId);
+            ThreadsDbTable.storeLatestMsgId(temp, threadId);
         }
         if (temp > 0) {
             messageId = temp;
@@ -53,7 +53,7 @@ public final class SortThreads {
     private static void countAndSortMessages(TextChannel thread, final long messageId, int amountOfThreads) {
         thread.retrieveMessageById(messageId).queue(
             latestMsg -> {
-                int initialPostCount = ThreadDbTable.getPostCount(thread);
+                int initialPostCount = ThreadsDbTable.getPostCount(thread);
                 countSortAndDoInactivityTask(initialPostCount, latestMsg, thread, amountOfThreads);
             }
         );
@@ -70,11 +70,11 @@ public final class SortThreads {
                         int counter = postCount;
                         counter += countUniqueNewMessages(messages);
                         if (counter > 0) {
-                            ThreadDbTable.storePostCount(counter, threadId);
+                            ThreadsDbTable.storePostCount(counter, threadId);
                         }
                         countSortAndDoInactivityTask(counter, messages.get(0), thread, amountOfThreads);
                     } else {
-                        ThreadDbTable.storeLatestMsgId(
+                        ThreadsDbTable.storeLatestMsgId(
                             latestMsg.getIdLong(), threadId);
                     }
                     LOGGER.debug("Post count for thread {} is {}",
@@ -138,7 +138,7 @@ public final class SortThreads {
         if (!allThreads.isEmpty()) {
             GuildUtil.getGuild(jda)
                 .modifyTextChannelPositions(threadCategory)
-                .sortOrder(Comparator.comparingInt(ThreadDbTable::getGuildChannelPostCount)
+                .sortOrder(Comparator.comparingInt(ThreadsDbTable::getGuildChannelPostCount)
                     .reversed())
                 .queue(success ->
                     InactiveThreadChecker.startOrCancelInactivityTaskIfNotTopX(allThreads));
@@ -151,7 +151,7 @@ public final class SortThreads {
                 SortThreads.countUniquePostsAndSort(textChan, 1);
             } else if (event instanceof MessageDeleteEvent) {
                 MessageDeleteEvent deleteEvent = ((MessageDeleteEvent)event);
-                ThreadDbTable.updateLatestMsgInDbIfDeleted(deleteEvent.getMessageIdLong(),
+                ThreadsDbTable.updateLatestMsgInDbIfDeleted(deleteEvent.getMessageIdLong(),
                     deleteEvent.getTextChannel());
             }
         }

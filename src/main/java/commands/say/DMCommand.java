@@ -19,7 +19,7 @@ public class DMCommand extends Command {
 
     public DMCommand(String name) {
         this.name = String.format("%s_dm", name.toLowerCase());
-        this.help = String.format("say something with %s in a DM to a user.", name);
+        this.help = String.format("Say something with %s in a DM to a user.", name);
         this.arguments = "<text> followed by separator '|' <user id>";
         this.guildOnly = false;
         this.ownerCommand = true;
