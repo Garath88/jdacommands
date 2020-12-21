@@ -1,5 +1,7 @@
 package commands.channel.rp;
 
+import java.util.Collections;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
@@ -17,10 +19,11 @@ public class RpDeleteCommand extends Command {
     public RpDeleteCommand() {
         this.name = "rp_delete";
         this.help = "Choose a created RP channel to delete.";
-        this.guildOnly = false;
         this.botPermissions = new Permission[] {
             Permission.MANAGE_CHANNEL
         };
+        this.requiredRoles = Collections.singletonList("Roleplayer");
+        this.guildOnly = false;
     }
 
     @Override
