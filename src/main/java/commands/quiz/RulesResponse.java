@@ -38,7 +38,7 @@ public class RulesResponse implements TriFunction<Guild, MessageReceivedEvent, E
                         success -> {
                             pc.sendTyping().queue();
                             pc.sendMessage(
-                                "- P.S. You can react in server info to gain access to even more channels.")
+                                "- P.S. You can react in #server info to gain access to even more channels.")
                                 .queueAfter(2000, TimeUnit.MILLISECONDS);
                         }));
                 }),

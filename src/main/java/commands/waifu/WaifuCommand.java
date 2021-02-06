@@ -136,7 +136,7 @@ public class WaifuCommand extends Command {
                 .collect(Collectors.toList());
             Member member = guild.getMember(event.getAuthor());
             if (member != null) {
-                List<Role> memberRoles = member.getRoles();
+                List<Role> memberRoles = new ArrayList<>(member.getRoles());
                 memberRoles.removeAll(rolesToBeRemoved);
                 guild.modifyMemberRoles(member, memberRoles)
                     .queue(success -> {

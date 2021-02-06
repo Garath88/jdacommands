@@ -35,6 +35,10 @@ public final class InactiveThreadChecker {
             LOGGER.debug("Scheduling inactivity task for {}", textChannel.getName());
         } else if (!lowPosChannel) {
             cancelInactivityTask(textChannel);
+        } else {
+            String debugMessage = String.format("Already running inactivity task for low pos channel: %s",
+                textChannel.getName());
+            LOGGER.debug(debugMessage);
         }
     }
 

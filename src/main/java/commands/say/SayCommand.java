@@ -25,7 +25,7 @@ public final class SayCommand extends Command {
     public SayCommand(String name) {
         botName = name;
         this.name = String.format("%s_say", name.toLowerCase());
-        this.aliases = new String[] { name.substring(0, 1) + "s" };
+        this.aliases = new String[] { this.name.substring(0, 1) + "s" };
         this.help = String.format("Say something with %s and optionally create a channel"
             + " or with no arguments to list current talking channel.", name);
         this.arguments = "[<text>] followed by separator '|' [<topic>]";

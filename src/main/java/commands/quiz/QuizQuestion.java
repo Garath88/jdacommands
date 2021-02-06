@@ -73,13 +73,14 @@ public final class QuizQuestion {
 
     private static void blockMemberFromSelfRoleChannels(Guild guild, Member member) {
         CategoryUtil.getSelfRoleCategories(guild)
-            .forEach(category -> category.createPermissionOverride(member)
-                .setDeny(Permission.MESSAGE_READ)
+            .forEach(category -> category.upsertPermissionOverride(member)
+                .deny(Permission.MESSAGE_READ)
                 .queue());
+
         FinderUtil.findTextChannels("日本語-translations", guild).stream()
             .filter(Objects::nonNull)
-            .forEach(channel -> channel.createPermissionOverride(member)
-                .setDeny(Permission.MESSAGE_READ)
+            .forEach(channel -> channel.upsertPermissionOverride(member)
+                .deny(Permission.MESSAGE_READ)
                 .queue());
     }
 }
