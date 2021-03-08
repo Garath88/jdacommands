@@ -12,11 +12,11 @@ public final class MediaPatterns {
     private static final Pattern URL_FC2_PATTERN =
         Pattern.compile("http(s?)://.*fc2.*");
     private static final Pattern URL_BOORU_PATTERN =
-        Pattern.compile("http(s?)://.*booru.*");
+        Pattern.compile("http(s?)://.*booru.*(jpg|png|jpeg|gif)\"");
     private static final Pattern URL_CDN_DISCORD_PATTERN =
-        Pattern.compile("^http(s?)://cdn.discordapp.com/.*");
+        Pattern.compile("^http(s?)://cdn.discordapp.com/.*(jpg|png|jpeg|gif)\"");
     private static final Pattern URL_MEDIA_DISCORD_PATTERN =
-        Pattern.compile("^http(s?)://media.discordapp.net/.*");
+        Pattern.compile("^http(s?)://media.discordapp.net/.*(jpg|png|jpeg|gif)\"");
     private static final Pattern URL_WEBMSHARE_PATTERN =
         Pattern.compile("http(s?)://.*webmshare.com.*");
     private static final Pattern URL_IMGUR_SINGLE_PATTERN =
