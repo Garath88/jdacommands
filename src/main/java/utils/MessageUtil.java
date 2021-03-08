@@ -17,12 +17,14 @@ import commands.say.SayStorage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild.BoostTier;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.internal.requests.Route.Guilds;
 
 public final class MessageUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageUtil.class);
@@ -114,7 +116,8 @@ public final class MessageUtil {
     public static void sendAttachmentsToChannel(List<Message.Attachment> attachments, MessageChannel channel) {
         attachments.forEach(attachment -> {
             try {
-                if (attachment.getSize() <= MAX_UPLOAD_8_MB) {
+                if (attachment.getSize() <= MAX_UPLOAD_8_MB ||
+                    GuildUtil.getGuild(channel.getJDA()).getBoostTier().equals(BoostTier.TIER_2)) {
                     channel.sendFile(attachment.retrieveInputStream().get(), attachment.getFileName())
                         .queue();
                 } else {
