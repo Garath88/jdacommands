@@ -21,7 +21,7 @@ import utils.RoleUtil;
 
 public final class QuizQuestion {
     static final String QUIZ_QUESTION =
-        "- **What is the name of the place where my sister was taken after being abducted by Oboro in Taimanin Asagi 1 (VN and OVA)?**";
+        "- **Who do I \"fight to the death\" in order to free myself and my sister in Taimanin Asagi 1?** *(As seen in OVA 1 episodes 1-4 or VN 1)*";
     public static final String QUIZ_ROLE = "Quiz";
     public static final String RULES_ROLE = "Rules";
     static final int QUIZ_TIMEOUT_IN_SECONDS = 10 * 60;

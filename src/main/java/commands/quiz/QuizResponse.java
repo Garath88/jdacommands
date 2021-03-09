@@ -1,5 +1,8 @@
 package commands.quiz;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
@@ -16,6 +19,7 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
     private static final int REPLY_DELAY = 1000;
     private CommandClient client;
     private final String retryMessage;
+    private static final Pattern CORRECT_ANSWER_PATTERN = Pattern.compile("^((?i)asagi[\\s.,!]*?(igawa[.!\\s]*?)?|igawa[,]?\\sasagi[!.\\s]*?)$");
 
     QuizResponse(CommandClient client) {
         this.client = client;
@@ -36,9 +40,8 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
             .replace(".", "")
             .trim();
         JDA jda = guild.getJDA();
-        if (answer.equals("chaos arena") ||
-            answer.equals("the chaos arena")
-        ) {
+        Matcher matcher = CORRECT_ANSWER_PATTERN.matcher(response);
+        if (matcher.find()) {
             MessageUtil.sendMessageToUser(user, EmojiUtil.getCustomEmoji(jda, "sakura"));
             MessageUtil.sendMessageToUser(user, "- Correct", REPLY_DELAY);
             RoleUtil.addRole(guild, user, QuizQuestion.RULES_ROLE);
@@ -47,10 +50,10 @@ public class QuizResponse implements TriFunction<Guild, MessageReceivedEvent, Ev
         } else if (answer.equals("sawaki")) {
             MessageUtil.sendMessageToUser(user, "- Sawaki? Sawaki who?? \n"
                 + retryMessage, REPLY_DELAY);
-        } else if ("sakura".equals(answer) || "sakura igawa".equals(answer) || "igawa sakura".equals(answer)) {
+        } else if ("sakura".equals(response) || "sakura igawa".equals(response) || "igawa sakura".equals(response)) {
             MessageUtil.sendMessageToUser(user,
-                "- Yes? Wait.. Meee?!! You are such a silly goose! :smile:\n"
-                    + retryMessage, REPLY_DELAY);
+                "- Mee?! Why would I fight myself? You silly goose! :smile:\n"
+                    + retryMessage);
         } else if (answer.contains("?")) {
             MessageUtil.sendMessageToUser(user,
                 "- It's rude to answer a question with a question! \n"

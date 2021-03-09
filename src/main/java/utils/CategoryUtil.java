@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.entities.Guild;
 public final class CategoryUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryUtil.class);
     private static final String THREAD_CATEGORY = "current threads";
-    private static final String RP_CATEGORY = "the basement";
+    private static final String RP_CATEGORY = "═══『THE BASEMENT』═══";
 
     private CategoryUtil() {
     }
