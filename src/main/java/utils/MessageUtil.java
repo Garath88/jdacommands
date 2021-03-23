@@ -29,6 +29,7 @@ import net.dv8tion.jda.internal.requests.Route.Guilds;
 public final class MessageUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageUtil.class);
     private static final int MAX_UPLOAD_8_MB = 8_000_000;
+    private static final int MAX_UPLOAD_50_MB = 50_000_000;
 
     private MessageUtil() {
     }
@@ -116,8 +117,11 @@ public final class MessageUtil {
     public static void sendAttachmentsToChannel(List<Message.Attachment> attachments, MessageChannel channel) {
         attachments.forEach(attachment -> {
             try {
-                if (attachment.getSize() <= MAX_UPLOAD_8_MB ||
-                    GuildUtil.getGuild(channel.getJDA()).getBoostTier().equals(BoostTier.TIER_2)) {
+                int size = attachment.getSize();
+                if (size <= MAX_UPLOAD_8_MB ||
+                    (GuildUtil.getGuild(channel.getJDA()).getBoostTier().equals(BoostTier.TIER_2) &&
+                        size <= MAX_UPLOAD_50_MB)
+                ) {
                     channel.sendFile(attachment.retrieveInputStream().get(), attachment.getFileName())
                         .queue();
                 } else {
