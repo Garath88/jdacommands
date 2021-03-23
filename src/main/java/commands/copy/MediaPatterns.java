@@ -37,19 +37,14 @@ public final class MediaPatterns {
         Pattern.compile("[^\\s]+\\.(?i)(jpg|png|gif|bmp)$");
 
     private static final List<Pattern> PATTERNS = Arrays.asList(
-        URL_TWITTER_PATTERN,
         URL_TWITTER_STATUS_PATTERN,
-        URL_FC2_PATTERN,
-        URL_BOORU_PATTERN,
-        URL_CDN_DISCORD_PATTERN,
-        URL_MEDIA_DISCORD_PATTERN,
         URL_WEBMSHARE_PATTERN,
-        URL_IMGUR_SINGLE_PATTERN,
         URL_IMGUR_ALBUM_PATTERN,
         URL_GFYCAT_PATTERN,
         URL_NOZOMI_PATTERN,
         URL_WEBM_PATTERN,
-        URL_MP4_PATTERN);
+        URL_MP4_PATTERN,
+        IMAGE_PATTERN);
 
     private MediaPatterns() {
     }
