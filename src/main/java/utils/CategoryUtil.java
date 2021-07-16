@@ -17,17 +17,31 @@ import net.dv8tion.jda.api.entities.Guild;
 public final class CategoryUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryUtil.class);
     private static final String THREAD_CATEGORY = "current threads";
-    private static final String RP_CATEGORY = "═══『THE BASEMENT』═══";
+    private static final String RP_CATEGORY = "the basement";
+    private static final String ARCHIVE_CATEGORY = "public archive";
+    private static final String CATEGORY_NOT_FOUND = "Category \"%s\" was not found!";
 
     private CategoryUtil() {
     }
+
+    public static Category getPublicArchiveCategory(JDA jda) {
+        return FinderUtil.findCategories(ARCHIVE_CATEGORY, jda)
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> {
+                String errorMsg = String.format(CATEGORY_NOT_FOUND, ARCHIVE_CATEGORY);
+                LOGGER.error(errorMsg);
+                return new IllegalStateException(errorMsg);
+            });
+    }
+
 
     public static Category getThreadCategory(JDA jda) {
         return FinderUtil.findCategories(THREAD_CATEGORY, jda)
             .stream()
             .findFirst()
             .orElseThrow(() -> {
-                String errorMsg = String.format("Category \"%s\" was not found!", THREAD_CATEGORY);
+                String errorMsg = String.format(CATEGORY_NOT_FOUND, THREAD_CATEGORY);
                 LOGGER.error(errorMsg);
                 return new IllegalStateException(errorMsg);
             });
@@ -38,7 +52,7 @@ public final class CategoryUtil {
             .stream()
             .findFirst()
             .orElseThrow(() -> {
-                String errorMsg = String.format("Category \"%s\" was not found!", RP_CATEGORY);
+                String errorMsg = String.format(CATEGORY_NOT_FOUND, RP_CATEGORY);
                 LOGGER.error(errorMsg);
                 return new IllegalStateException(errorMsg);
             });
@@ -52,7 +66,7 @@ public final class CategoryUtil {
             .findFirst().orElse(null);
         categories.add(theBasement);
 
-        Category publicArchive = FinderUtil.findCategories("public archive", guild).stream()
+        Category publicArchive = FinderUtil.findCategories(ARCHIVE_CATEGORY, guild).stream()
             .findFirst().orElse(null);
         categories.add(publicArchive);
 

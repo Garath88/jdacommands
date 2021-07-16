@@ -8,13 +8,15 @@ import java.util.stream.Collectors;
 
 import org.slf4j.LoggerFactory;
 
+import commands.channel.database.ThreadsDbTable;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import tasks.Task;
+import utils.CategoryUtil;
 
 public final class InactiveThreadCheckTask extends Task {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(InactiveThreadCheckTask.class);
-    private static final int NO_CONTENT_EXPIRE_AFTER_MIN = 5;
+    private static final int NO_CONTENT_EXPIRE_AFTER_MIN = 6;
     private static final int EXPIRE_AFTER_MIN = 48 * 60;
     private static final int WARNING_BEFORE_MIN = 8 * 60;
     private static final int FINAL_WARNING_BEFORE_MIN = 60;
@@ -53,7 +55,7 @@ public final class InactiveThreadCheckTask extends Task {
                     sendInactivityMsg(EXPIRE_AFTER_MIN);
                     scheduleDelete(WARNING_BEFORE_MIN, 1, deleteTime);
                 } else {
-                    deleteChannel();
+                    moveChannelToPublicArchive();
                 }
             } else if (timeLeft <= FINAL_WARNING_BEFORE_MIN) {
                 sendInactivityMsg(timeLeft);
@@ -70,11 +72,22 @@ public final class InactiveThreadCheckTask extends Task {
     }
 
     private void sendInactivityMsg(long expirationTime) {
-        LOGGER.debug("Sending inactivity message to channel {}",
-            thread.getName());
-        String message = createInactivityMessage(expirationTime);
-        thread.sendMessage(message)
-            .queue();
+        long threadId = thread.getIdLong();
+        int currentBumpCount = ThreadsDbTable.getBumpCount(threadId) + 1;
+        if (currentBumpCount < 35) {
+            LOGGER.debug("Sending inactivity message to channel {}",
+                thread.getName());
+            String message = createInactivityMessage(expirationTime);
+            thread.sendMessage(message).queue(
+                success -> ThreadsDbTable.storeBumpCount(currentBumpCount, threadId));
+        } else {
+            moveThreadToPublicArchive();
+        }
+    }
+
+    private void moveThreadToPublicArchive() {
+        thread.getManager().setParent(CategoryUtil.getPublicArchiveCategory(thread.getJDA()))
+            .queue(success -> thread.getManager().sync().queue());
     }
 
     private void scheduleDelete(long timeLeft, long warningTime, OffsetDateTime deleteTime) {
@@ -128,12 +141,11 @@ public final class InactiveThreadCheckTask extends Task {
         return null;
     }
 
-    void deleteChannel() {
+    void moveChannelToPublicArchive() {
         InactiveThreadChecker.getTaskListContainer()
             .cancelTask(this);
         if (InactiveThreadChecker.shouldNotBeSaved(thread)) {
-            thread.delete()
-                .queue();
+            moveThreadToPublicArchive();
         }
     }
 

@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 
 
-/*TODO: TEST JOOQ INSTEAD OF THIS*/
+/*TODO: TEST JOOQ OR USE PREPARED STATEMENTS INSTEAD OF THIS*/
 
 public final class ThreadsDbTable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ThreadsDbTable.class);
@@ -189,6 +189,32 @@ public final class ThreadsDbTable {
         String sql = String.format("UPDATE %s.%s "
                 + "SET post_count = %s WHERE id = %s ",
             DB_NAME, TABLE_NAME, postCount, threadId);
+        SqlUtil.executeQuery(sql);
+    }
+
+    public static int getBumpCount(long threadId) {
+        String sql = String.format(
+            "SELECT bump_count FROM %s.%s WHERE id = %s",
+            DB_NAME, TABLE_NAME, threadId);
+        ResultSet result = MariaDbConnector.executeSql(sql);
+        int bumpCount = 0;
+        if (result != null) {
+            try {
+                while (result.next()) {
+                    bumpCount = result.getInt("bump_count");
+                }
+                result.close();
+            } catch (SQLException e) {
+                LOGGER.error(QUERY_RESULT_ERROR, e);
+            }
+        }
+        return bumpCount;
+    }
+
+    public static void storeBumpCount(int bumpCount, long threadId) {
+        String sql = String.format("UPDATE %s.%s "
+                + "SET bump_count = %s WHERE id = %s ",
+            DB_NAME, TABLE_NAME, bumpCount, threadId);
         SqlUtil.executeQuery(sql);
     }
 }
