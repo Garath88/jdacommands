@@ -141,7 +141,7 @@ public final class InactiveThreadCheckTask extends Task {
         return null;
     }
 
-    void moveChannelToPublicArchive() {
+    private void moveChannelToPublicArchive() {
         InactiveThreadChecker.getTaskListContainer()
             .cancelTask(this);
         if (InactiveThreadChecker.shouldNotBeSaved(thread)) {

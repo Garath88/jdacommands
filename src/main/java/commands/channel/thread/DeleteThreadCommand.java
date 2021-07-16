@@ -117,11 +117,11 @@ public class DeleteThreadCommand extends Command {
             InactiveThreadChecker.getThreadTask(threadToDelete.getIdLong());
         if (threadTaskToBeDeleted.isPresent()) {
             InactiveThreadCheckTask task = threadTaskToBeDeleted.get();
-            task.moveChannelToPublicArchive();
-        } else {
-            threadToDelete.delete()
-                .queue();
+            InactiveThreadChecker.getTaskListContainer()
+                .cancelTask(task);
         }
+        threadToDelete.delete()
+            .queue();
     }
 
     private static TextChannel getThreadToDeleteByName(String args, JDA jda,
